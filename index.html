@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>🏆 Liga de Pronósticos</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Agregamos la librería de alertas que faltaba -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    body { background-color: #f4f6f9; }
+    .header-app { background: linear-gradient(135deg, #1a365d 0%, #2b5c9c 100%); color: white; padding: 2rem 0; }
+    .table-container { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-top: -30px; }
+    .vip-badge { font-size: 0.8rem; background: #ffd700; color: #000; padding: 2px 6px; border-radius: 12px; margin-left: 5px; font-weight: bold;}
+    .clickable-row { cursor: pointer; transition: background 0.2s; }
+    .clickable-row:hover { background-color: #e2e8f0 !important; }
+    .stat-card { border-radius: 10px; padding: 15px; text-align: center; }
+
+    /* --- ESTILOS DE LA MARCA ALIADO --- */
+    .top-banner {
+      background-color: #ffffff; /* Fondo blanco para el logo */
+      padding: 15px 0;
+      text-align: center;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+      position: relative;
+      z-index: 10;
+      border-bottom: 3px solid #d4ff00; /* Línea verde lima de Aliado */
+    }
+    .top-banner img {
+      height: 60px; /* Tamaño ideal para celulares y PC */
+      object-fit: contain;
+    }
+    /* Cambiamos el azul genérico por el Morado Aliado */
+    .header-app { 
+      background: linear-gradient(135deg, #3f2b6e 0%, #2a1b4e 100%) !important; 
+    }
+    /* Estilos del pie de página */
+    .footer-empresa {
+      background-color: #f8f9fa;
+      text-align: center;
+      padding: 30px 15px;
+      margin-top: 60px;
+      color: #3f2b6e;
+    }
+    .btn-whatsapp {
+      background-color: #25D366;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 50px;
+      text-decoration: none;
+      font-weight: bold;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 6px rgba(37,211,102,0.3);
+      transition: transform 0.2s;
+    }
+    .btn-whatsapp:hover {
+      transform: scale(1.05);
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <!-- BANNER SUPERIOR ALIADO -->
+  <div class="top-banner">
+    <img src="logo2.png" alt="Aliado">
+  </div>
+  <div class="header-app text-center">
+    <h2>🏆 Liga de Pronósticos</h2>
+    <p>Haz clic en un participante para ver su rendimiento detallado</p>
+  </div>
+  
+  <div class="container table-container">
+    <div class="row g-2 mb-3">
+      <div class="col-md-4"><h4 class="m-0 text-primary pt-1">Clasificación</h4></div>
+      <div class="col-md-4">
+        <select id="filtroJornada" class="form-select fw-bold" onchange="cargarTabla()">
+          <option value="Todas">📅 Todas las fechas</option>
+        </select>
+      </div>
+      <div class="col-md-4">
+        <select id="filtroTipo" class="form-select fw-bold bg-light" onchange="cargarTabla()">
+          <option value="Todos">🌍 General (Todos)</option>
+          <option value="VIP">👑 Solo Participantes Oficiales</option>
+          <option value="Público">👥 Solo Público</option>
+        </select>
+      </div>
+    </div>
+    <div id="loader" class="text-center my-5"><div class="spinner-border text-primary" role="status"></div></div>
+    
+    <table class="table d-none mt-3" id="tablaPosiciones">
+      <thead class="table-dark"><tr><th class="text-center">Pos</th><th>Participante</th><th class="text-center">Puntos</th></tr></thead>
+      <tbody id="tbodyPosiciones"></tbody>
+    </table>
+  </div>
+
+  <!-- MODAL DASHBOARD -->
+  <div class="modal fade" id="modalDashboard" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title" id="modalTitle">Desglose de Rendimiento</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body bg-light">
+          <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
+            <h4 class="m-0 fw-bold text-dark" id="dashNombre">Participante</h4>
+            <select id="filtroModal" class="form-select w-auto border-primary" onchange="cargarDashboard()">
+              <option value="Todas">Todas las fechas</option>
+            </select>
+          </div>
+          <div id="loaderModal" class="text-center my-4"><div class="spinner-border text-primary"></div></div>
+          
+          <div id="dashboardContent" class="d-none">
+            <div class="row g-2 mb-4">
+              <div class="col-4"><div class="stat-card bg-white border border-success border-2"><h3 class="text-success m-0 fw-bold" id="statExactos">0</h3><small class="text-muted fw-bold lh-1 d-block mt-1">Marcadores<br>Exactos</small></div></div>
+              <div class="col-4"><div class="stat-card bg-white border border-info border-2"><h3 class="text-info m-0 fw-bold" id="statTendencia">0</h3><small class="text-muted fw-bold lh-1 d-block mt-1">Aciertos<br>Ganador</small></div></div>
+              <div class="col-4"><div class="stat-card bg-primary text-white shadow"><h3 class="m-0 fw-bold" id="statTotal">0</h3><small class="fw-bold lh-1 d-block mt-1 text-white-50">Puntos<br>Totales</small></div></div>
+            </div>
+            <h6 class="fw-bold text-secondary mb-2">Historial de Pronósticos</h6>
+            <div class="table-responsive">
+              <table class="table table-sm table-bordered bg-white text-center align-middle">
+                <thead class="table-light text-secondary"><tr><th class="text-start">Partido</th><th>Su Pronóstico</th><th>Resultado Real</th><th>Pts</th></tr></thead>
+                <tbody id="tbodyHistorial"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <script>
+    // --- 1. CONEXIÓN API REST ---
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby937YYWqvNdsx5lZ3hRDq0-KvjmDcPg99JyxecTrrn9Ah86URDTSppG9-y5MgTdxuNDg/exec";
+
+    async function callAPI(accion, params = {}) {
+      const res = await fetch(SCRIPT_URL, {
+        method: 'POST',
+        redirect: 'follow',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ accion: accion, params: params })
+      });
+      const json = await res.json();
+      if (json.status === "error") throw new Error(json.message);
+      return json.data;
+    }
+
+    // --- 2. LÓGICA DE LA PÁGINA ---
+    let currentPartId = null;
+    let currentPartName = null;
+
+    window.onload = async function() {
+      try {
+        // 1. Primero pide las jornadas y ESPERA a que lleguen
+        let jornadas = await callAPI("getJornadasAPI");
+        let selectPrin = document.getElementById('filtroJornada');
+        let selectMod = document.getElementById('filtroModal');
+        jornadas.forEach(j => {
+          selectPrin.innerHTML += `<option value="j">{j}</option>`;
+          selectMod.innerHTML += `<option value="j">{j}</option>`;
+        });
+      } catch (err) {
+        console.error("Error al cargar las fechas:", err);
+      }
+      
+      // 2. Una vez que las fechas ya están listas, RECIÉN pide la tabla
+      cargarTabla();
+    };
+
+    function cargarTabla() {
+      let jor = document.getElementById('filtroJornada').value;
+      let tip = document.getElementById('filtroTipo').value;
+      document.getElementById('loader').classList.remove('d-none');
+      document.getElementById('tablaPosiciones').classList.add('d-none');
+      
+      callAPI("getPosicionesAPI", {jornada: jor, tipo: tip})
+        .then(renderTable)
+        .catch(err => Swal.fire('Error', 'No se pudo cargar la tabla: ' + err.message, 'error'));
+    }
+
+    function renderTable(data) {
+      document.getElementById('loader').classList.add('d-none');
+      document.getElementById('tablaPosiciones').classList.remove('d-none');
+      let tbody = document.getElementById('tbodyPosiciones');
+      let html = '';
+      data.forEach(row => {
+        let medalla = row.rank === 1 ? '🥇' : row.rank === 2 ? '🥈' : row.rank === 3 ? '🥉' : row.rank;
+        let badge = row.tipo === "VIP" ? '<span class="vip-badge">👑 VIP</span>' : '';
+        html += `<tr class="clickable-row" onclick="abrirDashboard('row.id','{row.nombre}')">
+                   <td class="text-center fw-bold">${medalla}</td>
+                   <td class="fw-bold">${row.nombre} ${badge} <small class="text-primary ms-2" style="font-size:0.7em;">🔍 Ver más</small></td>
+                   <td class="text-center fw-bold text-primary fs-5">${row.puntos}</td>
+                 </tr>`;
+      });
+      tbody.innerHTML = html;
+    }
+
+    function abrirDashboard(id, nombre) {
+      currentPartId = id;
+      currentPartName = nombre;
+      document.getElementById('dashNombre').innerText = nombre;
+      document.getElementById('filtroModal').value = document.getElementById('filtroJornada').value;
+      
+      // Forma blindada de iniciar ventanas modales en Bootstrap 5
+      var modalEl = document.getElementById('modalDashboard');
+      var myModal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+      myModal.show();
+      
+      cargarDashboard();
+    }
+
+    function cargarDashboard() {
+      let filtro = document.getElementById('filtroModal').value;
+      document.getElementById('loaderModal').classList.remove('d-none');
+      document.getElementById('dashboardContent').classList.add('d-none');
+      
+      callAPI("getEstadisticasParticipanteAPI", {id: currentPartId, filtro: filtro})
+        .then(renderDashboard)
+        .catch(err => {
+          document.getElementById('loaderModal').classList.add('d-none');
+          Swal.fire('Error de conexión', 'Detalle: ' + err.message, 'error');
+        });
+    }
+
+    function renderDashboard(stats) {
+      document.getElementById('loaderModal').classList.add('d-none');
+      document.getElementById('dashboardContent').classList.remove('d-none');
+      document.getElementById('statExactos').innerText = stats.exactos;
+      document.getElementById('statTendencia').innerText = stats.tendencias;
+      document.getElementById('statTotal').innerText = stats.totalPuntos;
+
+      let tbody = document.getElementById('tbodyHistorial');
+      let html = '';
+      if(stats.historial.length === 0) {
+         html = '<tr><td colspan="4" class="text-muted py-3">Aún no hay pronósticos en esta fecha.</td></tr>';
+      } else {
+         stats.historial.forEach(h => {
+            html += `<tr>
+                       <td class="text-start"><small class="text-muted d-block" style="font-size:0.75rem;">h.jornada</small><strong>{h.partido}</strong></td>
+                       <td class="fw-bold bg-light">${h.pronostico}</td>
+                       <td class="fw-bold bg-light">${h.real}</td>
+                       <td class="fw-bold text-primary fs-6">${h.puntos}</td>
+                     </tr>`;
+         });
+      }
+      tbody.innerHTML = html;
+    }
+  </script>
+  <!-- PIE DE PÁGINA -->
+  <footer class="footer-empresa">
+    <h6 class="fw-bold mb-1">Desarrollado por Aliado</h6>
+    <p class="mb-3" style="font-size: 0.85rem; color: #6c757d;">Plataformas Deportivas y Sistemas Web</p>
+    
+    <a href="https://wa.me/51993801594" target="_blank" class="btn-whatsapp">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+        <path d="M13.601 2.326A7.85 7.85 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.9 7.9 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.9 7.9 0 0 0 13.6 2.326zM7.994 14.521a6.6 6.6 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.56 6.56 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592m3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.73.73 0 0 0-.529.247c-.182.198-.691.677-.691 1.654s.71 1.916.81 2.049c.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232"/>
+      </svg>
+      Escríbenos al 993 801 594
+    </a>
+  </footer>
+</body>
+</html>
+
