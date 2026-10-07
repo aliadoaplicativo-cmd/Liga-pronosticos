@@ -197,10 +197,9 @@
     // ==========================================
     // NUEVO MOTOR: CALCULAR PUNTOS MASIVO
     // ==========================================
-    window.calcularPuntosFirebase = async () => {
+   window.calcularPuntosFirebase = async () => {
        Swal.fire({title: 'Analizando Excel...', text: 'Leyendo resultados y configuración...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
        try {
-          // 1. Obtener reglas y resultados reales de Excel
           const datosExcel = await callAPI("obtenerResultadosYReglasAPI", {password: globalPass});
           const reglas = datosExcel.reglas;
           const resultadosReales = datosExcel.resultados;
@@ -209,13 +208,26 @@
              return Swal.fire('Aviso', 'Aún no hay partidos marcados como "Finalizado" en el Excel.', 'warning');
           }
 
-          Swal.fire({title: 'Procesando usuarios...', text: 'Calculando puntajes en la Nube...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
+          Swal.fire({title: 'Actualizando Nube...', text: 'Guardando resultados y calculando puntajes...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
 
-          // 2. Traer todos los usuarios de Firebase
-          const usuariosSnap = await getDocs(collection(db, "usuarios"));
           let promesasUpdate = [];
 
-          // 3. Iterar usuario por usuario y revisar sus pronósticos
+          // 1. Guardar las reglas actuales en Firebase para el desglose
+          promesasUpdate.push(setDoc(doc(db, "configuracion", "reglas"), reglas));
+
+          // 2. Actualizar los partidos finalizados en Firebase (Poner goles reales y bloquearlos)
+          for (let pid in resultadosReales) {
+             promesasUpdate.push(updateDoc(doc(db, "partidos", pid), {
+                golesLocalReal: parseInt(resultadosReales[pid].golesLocal),
+                golesVisitaReal: parseInt(resultadosReales[pid].golesVisita),
+                estado: "Finalizado",
+                bloqueado: true // ¡Así nadie más puede pronosticar un partido ya jugado!
+             }).catch(() => {}));
+          }
+
+          // 3. Traer todos los usuarios y calcular sus puntos
+          const usuariosSnap = await getDocs(collection(db, "usuarios"));
+
           for(let userDoc of usuariosSnap.docs) {
              let uid = userDoc.id;
              let ptsTotales = 0; let exactos = 0; let ganadores = 0;
@@ -226,18 +238,15 @@
                 let pr = prDoc.data();
                 let pid = pr.partidoId;
                 
-                // Si el partido ya tiene resultado real en Excel, calculamos
                 if(resultadosReales[pid]) {
                    let realGL = parseInt(resultadosReales[pid].golesLocal);
                    let realGV = parseInt(resultadosReales[pid].golesVisita);
                    let prGL = parseInt(pr.golesLocal);
                    let prGV = parseInt(pr.golesVisita);
                    
-                   // Lógica de Marcador Exacto
                    if(prGL === realGL && prGV === realGV) {
                       ptsTotales += reglas.exacto; exactos++;
                    } else {
-                      // Lógica de Ganador / Empate
                       let difReal = realGL - realGV; let difPr = prGL - prGV;
                       if((difReal > 0 && difPr > 0) || (difReal < 0 && difPr < 0) || (difReal === 0 && difPr === 0)) {
                          ptsTotales += reglas.ganador; ganadores++;
@@ -246,7 +255,6 @@
                 }
              });
 
-             // Guardar el nuevo puntaje en el perfil del usuario (sin borrar sus datos)
              promesasUpdate.push(updateDoc(doc(db, "usuarios", uid), {
                 puntos: ptsTotales,
                 exactos: exactos,
@@ -255,7 +263,7 @@
           }
           
           await Promise.all(promesasUpdate);
-          Swal.fire('¡Éxito Total!', 'Los puntajes de todos los participantes han sido calculados y actualizados en la Nube.', 'success');
+          Swal.fire('¡Éxito Total!', 'Partidos cerrados y puntajes actualizados en la Nube.', 'success');
           
        } catch(err) {
           Swal.fire('Error', err.message, 'error');
