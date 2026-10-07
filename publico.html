@@ -9,15 +9,13 @@
   <style>
     body { background-color: #f4f6f9; }
     .header-app { background: linear-gradient(135deg, #3f2b6e 0%, #2a1b4e 100%) !important; color: white; padding: 2rem 0; }
-    .match-card { background: white; margin-bottom: 15px; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-left: 5px solid #d4ff00;}
-    .score-input { width: 70px !important; text-align: center; font-weight: bold; font-size: 1.2rem;}
+    .match-card { background: white; margin-bottom: 15px; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-left: 5px solid #d4ff00;}
+    .score-input { width: 70px !important; text-align: center; font-weight: bold; font-size: 1.2rem; border: 2px solid #3f2b6e;}
     /* --- ESTILOS DE LA MARCA ALIADO --- */
     .top-banner { background-color: #ffffff; padding: 15px 0; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); position: relative; z-index: 10; border-bottom: 3px solid #d4ff00; }
     .top-banner img { height: 60px; object-fit: contain; }
     .footer-empresa { background-color: #f8f9fa; text-align: center; padding: 30px 15px; margin-top: 60px; color: #3f2b6e; }
     .footer-logo { height: 50px; margin-bottom: 10px; object-fit: contain; }
-    .btn-whatsapp { background-color: #25D366; color: white; padding: 10px 20px; border-radius: 50px; text-decoration: none; font-weight: bold; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 6px rgba(37,211,102,0.3); transition: transform 0.2s; }
-    .btn-whatsapp:hover { transform: scale(1.05); color: white; }
   </style>
 </head>
 <body>
@@ -28,9 +26,10 @@
 
   <div class="header-app text-center"><h2>👥 Pronósticos al Público</h2></div>
   
-  <div class="container mt-4 mb-5" style="max-width: 700px;" id="loginArea">
+  <!-- ZONA DE INGRESO -->
+  <div class="container mt-4 mb-5" style="max-width: 600px;" id="loginArea">
     <div class="card p-4 shadow-sm border-0 border-top border-success border-4">
-      <h5 class="mb-3">Ingreso / Registro</h5>
+      <h5 class="mb-3 text-center fw-bold">Ingreso / Registro</h5>
       <input type="email" id="emailPub" class="form-control mb-3" placeholder="Tu Correo Electrónico">
       <input type="password" id="passPub" class="form-control mb-3" placeholder="Tu Contraseña">
       
@@ -40,23 +39,29 @@
       </div>
       
       <div id="registroForm" class="d-none mt-4 border-top pt-3">
-        <h6>Completa tus datos para registrarte:</h6>
+        <h6 class="fw-bold">Completa tus datos para registrarte:</h6>
         <input type="text" id="regNombre" class="form-control mb-2" placeholder="Tu Nombre Real (Privado)">
         <input type="text" id="regNick" class="form-control mb-2" placeholder="Nickname (El que verán todos)">
-        <button class="btn btn-success w-100 mt-2" onclick="registrarPublico()">Crear mi Cuenta</button>
+        <button class="btn btn-success w-100 mt-2 fw-bold" onclick="registrarPublico()">Crear mi Cuenta</button>
       </div>
     </div>
   </div>
   
+  <!-- ZONA DE PARTIDOS (Oculta hasta iniciar sesión) -->
   <div class="container mt-4 mb-5 d-none" style="max-width: 700px;" id="pronosticosArea">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <h4 id="saludoUsuario" class="text-primary m-0">Hola</h4>
-      <button class="btn btn-sm btn-outline-danger" onclick="cerrarSesion()">Cerrar Sesión</button>
+    <div class="d-flex justify-content-between align-items-center mb-4 bg-white p-3 rounded shadow-sm border-start border-4 border-primary">
+      <h4 id="saludoUsuario" class="text-primary m-0 fw-bold">Hola</h4>
+      <button class="btn btn-sm btn-outline-danger fw-bold" onclick="cerrarSesion()">Salir</button>
     </div>
-    <div id="partidosContainer">
-      <div class="alert alert-info text-center mt-4">
-        <strong>¡Conexión exitosa a Firebase!</strong><br>Aún no hay partidos programados. El sistema está listo.
-      </div>
+    
+    <!-- Aquí aparecerán los partidos -->
+    <div id="partidosContainer"></div>
+
+    <!-- Botón para Guardar -->
+    <div class="text-center mt-4">
+      <button id="btnGuardarPronosticos" class="btn btn-success btn-lg fw-bold w-100 shadow-sm d-none" onclick="guardarPronosticos()">
+        💾 Guardar Mis Pronósticos
+      </button>
     </div>
   </div>
 
@@ -64,19 +69,15 @@
   <footer class="footer-empresa">
     <p class="mb-2 text-muted fw-bold" style="font-size: 0.85rem;">Desarrollado por:</p>
     <img src="logo2.png" alt="Aliado" class="footer-logo">
-    <p class="mb-3" style="font-size: 0.85rem; color: #6c757d;">Plataformas Deportivas y Sistemas Web</p>
-    <a href="https://wa.me/51993801594" target="_blank" class="btn-whatsapp">
-      Escríbenos al 993 801 594
-    </a>
   </footer>
 
   <!-- CONEXIÓN A FIREBASE -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
     import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
-    import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+    import { getFirestore, doc, setDoc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
 
-    // TUS LLAVES MAESTRAS DE ALIADO
+    // LLAVES MAESTRAS DE ALIADO
     const firebaseConfig = {
       apiKey: "AIzaSyDl95kPyGtbK5_6PP7i-joBS7fXY2BLXYg",
       authDomain: "liga-pronosticos-aliado.firebaseapp.com",
@@ -86,84 +87,149 @@
       appId: "1:819793391221:web:eb5cd4aa68938d9d13523c"
     };
 
-    // Encendiendo los motores
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    // Variables globales
     let loggedUserId = null;
 
-    // Funciones disponibles para los botones HTML
     window.mostrarRegistro = () => { document.getElementById('registroForm').classList.toggle('d-none'); };
 
+    // REGISTRO Y LOGIN (Mismo código seguro de antes)
     window.registrarPublico = async () => {
-      let email = document.getElementById('emailPub').value;
-      let pass = document.getElementById('passPub').value;
-      let nombre = document.getElementById('regNombre').value;
-      let nick = document.getElementById('regNick').value;
+      let email = document.getElementById('emailPub').value; let pass = document.getElementById('passPub').value;
+      let nombre = document.getElementById('regNombre').value; let nick = document.getElementById('regNick').value;
+      if(!email || !pass || !nombre || !nick) return Swal.fire('Atención', 'Completa todos los campos', 'warning');
       
-      if(!email || !pass || !nombre || !nick) return Swal.fire('Atención', 'Todos los campos son obligatorios', 'warning');
-      if(pass.length < 6) return Swal.fire('Atención', 'La contraseña debe tener al menos 6 caracteres', 'warning');
-      
-      Swal.fire({title:'Creando cuenta segura...', allowOutsideClick:false, didOpen:()=>Swal.showLoading()});
-      
+      Swal.fire({title:'Creando cuenta...', allowOutsideClick:false, didOpen:()=>Swal.showLoading()});
       try {
-        // 1. Crear el usuario en la bóveda de Auth
-        const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
-        const user = userCredential.user;
-
-        // 2. Guardar sus datos en la Base de Datos (Firestore)
-        await setDoc(doc(db, "usuarios", user.uid), {
-          nombre: nombre,
-          nick: nick,
-          email: email,
-          rol: "publico",
-          fechaRegistro: new Date()
-        });
-
+        const userCred = await createUserWithEmailAndPassword(auth, email, pass);
+        await setDoc(doc(db, "usuarios", userCred.user.uid), { nombre: nombre, nick: nick, email: email, rol: "publico" });
         Swal.fire('¡Éxito!', 'Tu cuenta ha sido creada. Ya puedes ingresar.', 'success');
         document.getElementById('registroForm').classList.add('d-none');
-      } catch (error) {
-        let msg = error.code === 'auth/email-already-in-use' ? 'Este correo ya está registrado.' : error.message;
-        Swal.fire('Error', msg, 'error');
-      }
+      } catch (error) { Swal.fire('Error', error.message, 'error'); }
     };
     
     window.loginPublico = async () => {
-      let email = document.getElementById('emailPub').value;
-      let pass = document.getElementById('passPub').value;
+      let email = document.getElementById('emailPub').value; let pass = document.getElementById('passPub').value;
       if(!email || !pass) return Swal.fire('Atención', 'Ingresa correo y contraseña', 'warning');
-      Swal.fire({title:'Verificando...', allowOutsideClick:false, didOpen:()=>Swal.showLoading()});
       
+      Swal.fire({title:'Entrando...', allowOutsideClick:false, didOpen:()=>Swal.showLoading()});
       try {
-        const userCredential = await signInWithEmailAndPassword(auth, email, pass);
-        const user = userCredential.user;
-
-        // Extraer el nombre del usuario desde la base de datos
-        const docSnap = await getDoc(doc(db, "usuarios", user.uid));
+        const userCred = await signInWithEmailAndPassword(auth, email, pass);
+        const docSnap = await getDoc(doc(db, "usuarios", userCred.user.uid));
         if (docSnap.exists()) {
-           iniciarSesionExitosa(user.uid, docSnap.data().nombre); 
-        } else {
-           Swal.fire('Error', 'Perfil de usuario no encontrado', 'error');
+           loggedUserId = userCred.user.uid;
+           document.getElementById('loginArea').classList.add('d-none');
+           document.getElementById('pronosticosArea').classList.remove('d-none');
+           document.getElementById('saludoUsuario').innerText = '👋 Hola, ' + docSnap.data().nombre;
+           
+           // AHORA LLAMA A LOS PARTIDOS
+           cargarPartidos();
         }
-      } catch (error) {
-        Swal.fire('Error', 'Correo o contraseña incorrectos', 'error');
-      }
+      } catch (error) { Swal.fire('Error', 'Correo o contraseña incorrectos', 'error'); }
     };
-    
-    function iniciarSesionExitosa(id, nombre) {
-      loggedUserId = id;
-      document.getElementById('loginArea').classList.add('d-none');
-      document.getElementById('pronosticosArea').classList.remove('d-none');
-      document.getElementById('saludoUsuario').innerText = '👋 Hola, ' + nombre;
-      Swal.close();
-      // Nota: La carga de partidos la activaremos en el siguiente paso.
+
+    window.cerrarSesion = async () => { await signOut(auth); location.reload(); };
+
+    // ==========================================
+    // EL NUEVO MOTOR: DESCARGAR Y GUARDAR DATOS
+    // ==========================================
+
+    // 1. Descargar partidos de Firebase
+    async function cargarPartidos() {
+      document.getElementById('partidosContainer').innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-primary"></div><p>Cargando partidos...</p></div>';
+      try {
+        const querySnapshot = await getDocs(collection(db, "partidos"));
+        let html = '';
+        
+        querySnapshot.forEach((docSnap) => {
+          let p = docSnap.data();
+          let disabled = p.bloqueado ? 'disabled' : '';
+          let bloqueadoUI = p.bloqueado ? '<span class="badge bg-danger ms-2">Cerrado</span>' : '';
+
+          html += `
+          <div class="match-card">
+            <div class="text-center text-muted small mb-2 fw-bold">${p.jornada} ${bloqueadoUI}</div>
+            <div class="d-flex justify-content-between align-items-center">
+              <div class="text-end fw-bold w-100" style="font-size: 1.1rem;">${p.local}</div>
+              <div class="mx-3 d-flex align-items-center">
+                <input type="number" id="loc_${p.id}" class="form-control score-input" min="0" ${disabled}>
+                <span class="mx-2 fs-4 fw-bold text-muted">-</span>
+                <input type="number" id="vis_${p.id}" class="form-control score-input" min="0" ${disabled}>
+              </div>
+              <div class="text-start fw-bold w-100" style="font-size: 1.1rem;">${p.visita}</div>
+            </div>
+          </div>`;
+        });
+
+        if (html === '') {
+           document.getElementById('partidosContainer').innerHTML = '<div class="alert alert-info text-center">No hay partidos programados.</div>';
+           Swal.close();
+           return;
+        }
+
+        document.getElementById('partidosContainer').innerHTML = html;
+        document.getElementById('btnGuardarPronosticos').classList.remove('d-none');
+        
+        // 2. Buscar si el usuario ya había guardado pronósticos antes
+        await cargarMisPronosticos();
+        Swal.close();
+
+      } catch (error) {
+        document.getElementById('partidosContainer').innerHTML = '<div class="alert alert-danger">Error cargando partidos.</div>';
+        Swal.close();
+      }
     }
 
-    window.cerrarSesion = async () => {
-       await signOut(auth);
-       location.reload();
+    // 3. Cargar los pronósticos guardados del usuario actual
+    async function cargarMisPronosticos() {
+      const pronosRef = collection(db, "usuarios", loggedUserId, "pronosticos");
+      const qs = await getDocs(pronosRef);
+      qs.forEach(d => {
+         let data = d.data();
+         let inLocal = document.getElementById('loc_' + d.id);
+         let inVisita = document.getElementById('vis_' + d.id);
+         // Si el partido existe en la pantalla, ponle los goles que guardó
+         if(inLocal && inVisita) {
+            inLocal.value = data.golesLocal;
+            inVisita.value = data.golesVisita;
+         }
+      });
+    }
+
+    // 4. Guardar los nuevos pronósticos directamente en Firebase
+    window.guardarPronosticos = async () => {
+       Swal.fire({title: 'Guardando en la Nube...', allowOutsideClick: false, didOpen:()=>Swal.showLoading()});
+       try {
+         // Leemos qué partidos están en la pantalla
+         const querySnapshot = await getDocs(collection(db, "partidos"));
+         let promesas = [];
+
+         querySnapshot.forEach((docSnap) => {
+            let p = docSnap.data();
+            if(!p.bloqueado) { // Protegemos: si está bloqueado no se guarda
+               let gl = document.getElementById('loc_' + p.id).value;
+               let gv = document.getElementById('vis_' + p.id).value;
+               
+               // Solo guarda si el usuario escribió números en ambos cuadros
+               if(gl !== "" && gv !== "") {
+                  // Ruta mágica: usuarios -> (id_usuario) -> pronosticos -> (id_partido)
+                  const docRef = doc(db, "usuarios", loggedUserId, "pronosticos", p.id);
+                  promesas.push(setDoc(docRef, {
+                     partidoId: p.id,
+                     golesLocal: parseInt(gl),
+                     golesVisita: parseInt(gv)
+                  }));
+               }
+            }
+         });
+         
+         await Promise.all(promesas); // Espera a que se guarden todos a la vez
+         Swal.fire('¡Excelente!', 'Tus pronósticos se han guardado con éxito.', 'success');
+       } catch (e) {
+         Swal.fire('Error', 'Hubo un problema al guardar', 'error');
+       }
     };
   </script>
 </body>
