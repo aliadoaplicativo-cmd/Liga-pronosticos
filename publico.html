@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Pronósticos al Público</title>
+  <title>Pronósticos al Público | Aliado</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <style>
@@ -21,28 +21,29 @@
   </style>
 </head>
 <body>
-  <!-- BANNER SUPERIOR ALIADO -->
+  <!-- BANNER SUPERIOR -->
   <div class="top-banner">
-    <img src="anuncio.png" alt="Aliado">
+    <img src="anuncio.png" alt="Anuncio">
   </div>
 
   <div class="header-app text-center"><h2>👥 Pronósticos al Público</h2></div>
   
   <div class="container mt-4 mb-5" style="max-width: 700px;" id="loginArea">
     <div class="card p-4 shadow-sm border-0 border-top border-success border-4">
-      <h5 class="mb-3">Ingreso con PIN</h5>
+      <h5 class="mb-3">Ingreso / Registro</h5>
       <input type="email" id="emailPub" class="form-control mb-3" placeholder="Tu Correo Electrónico">
-      <input type="password" id="pinPub" class="form-control mb-3" placeholder="PIN de 4 dígitos">
+      <input type="password" id="passPub" class="form-control mb-3" placeholder="Tu Contraseña">
+      
       <div class="d-flex gap-2">
          <button class="btn btn-primary w-50 fw-bold" onclick="loginPublico()">Ingresar</button>
-         <button class="btn btn-outline-dark w-50" onclick="mostrarRegistro()">Quiero Registrarme</button>
+         <button class="btn btn-outline-dark w-50" onclick="mostrarRegistro()">Nuevo Registro</button>
       </div>
+      
       <div id="registroForm" class="d-none mt-4 border-top pt-3">
-        <h6>Nuevo Registro</h6>
+        <h6>Completa tus datos para registrarte:</h6>
         <input type="text" id="regNombre" class="form-control mb-2" placeholder="Tu Nombre Real (Privado)">
         <input type="text" id="regNick" class="form-control mb-2" placeholder="Nickname (El que verán todos)">
-        <input type="text" id="regCel" class="form-control mb-2" placeholder="N° Celular">
-        <button class="btn btn-success w-100" onclick="registrarPublico()">Enviar PIN a mi correo</button>
+        <button class="btn btn-success w-100 mt-2" onclick="registrarPublico()">Crear mi Cuenta</button>
       </div>
     </div>
   </div>
@@ -50,11 +51,12 @@
   <div class="container mt-4 mb-5 d-none" style="max-width: 700px;" id="pronosticosArea">
     <div class="d-flex justify-content-between align-items-center mb-3">
       <h4 id="saludoUsuario" class="text-primary m-0">Hola</h4>
-      <button class="btn btn-sm btn-outline-danger" onclick="location.reload()">Cerrar Sesión</button>
+      <button class="btn btn-sm btn-outline-danger" onclick="cerrarSesion()">Cerrar Sesión</button>
     </div>
-    <div id="partidosContainer"><div class="text-center my-4"><div class="spinner-border text-primary"></div></div></div>
-    <div class="text-center mt-4" id="contenedorGuardarTodo">
-      <button class="btn btn-success btn-lg shadow py-3 w-100 fw-bold" onclick="guardarTodoMasivo()">💾 Guardar Todos</button>
+    <div id="partidosContainer">
+      <div class="alert alert-info text-center mt-4">
+        <strong>¡Conexión exitosa a Firebase!</strong><br>Aún no hay partidos programados. El sistema está listo.
+      </div>
     </div>
   </div>
 
@@ -64,124 +66,105 @@
     <img src="logo2.png" alt="Aliado" class="footer-logo">
     <p class="mb-3" style="font-size: 0.85rem; color: #6c757d;">Plataformas Deportivas y Sistemas Web</p>
     <a href="https://wa.me/51993801594" target="_blank" class="btn-whatsapp">
-      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
-        <path d="M13.601 2.326A7.85 7.85 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.9 7.9 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.9 7.9 0 0 0 13.6 2.326zM7.994 14.521a6.6 6.6 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.56 6.56 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592m3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.73.73 0 0 0-.529.247c-.182.198-.691.677-.691 1.654s.71 1.916.81 2.049c.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232"/>
-      </svg>
       Escríbenos al 993 801 594
     </a>
   </footer>
 
-  <script>
-    // PEGA AQUÍ TU URL DE LA NUEVA CUENTA
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzDQRJoNBzQG63to2JDb8P6nvko6ZaRBTrVpQGu554xG_COXYkmVewDfJDx76RBoE9oow/exec";
+  <!-- CONEXIÓN A FIREBASE -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
 
-    async function callAPI(accion, params = {}) {
-      const res = await fetch(SCRIPT_URL, {
-        method: 'POST', redirect: 'follow',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ accion: accion, params: params })
-      });
-      const json = await res.json();
-      if (json.status === "error") throw new Error(json.message);
-      return json.data;
-    }
+    // TUS LLAVES MAESTRAS DE ALIADO
+    const firebaseConfig = {
+      apiKey: "AIzaSyDl95kPyGtbK5_6PP7i-joBS7fXY2BLXYg",
+      authDomain: "liga-pronosticos-aliado.firebaseapp.com",
+      projectId: "liga-pronosticos-aliado",
+      storageBucket: "liga-pronosticos-aliado.firebasestorage.app",
+      messagingSenderId: "819793391221",
+      appId: "1:819793391221:web:eb5cd4aa68938d9d13523c"
+    };
 
+    // Encendiendo los motores
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // Variables globales
     let loggedUserId = null;
-    function mostrarRegistro() { document.getElementById('registroForm').classList.toggle('d-none'); }
-    
-    function registrarPublico() {
-      let email = document.getElementById('emailPub').value, nombre = document.getElementById('regNombre').value;
-      let nick = document.getElementById('regNick').value, cel = document.getElementById('regCel').value;
+
+    // Funciones disponibles para los botones HTML
+    window.mostrarRegistro = () => { document.getElementById('registroForm').classList.toggle('d-none'); };
+
+    window.registrarPublico = async () => {
+      let email = document.getElementById('emailPub').value;
+      let pass = document.getElementById('passPub').value;
+      let nombre = document.getElementById('regNombre').value;
+      let nick = document.getElementById('regNick').value;
       
-      if(!email || !nombre || !nick) return Swal.fire({icon:'warning', text:'Nombre, Nickname y Correo son obligatorios'});
-      Swal.fire({title:'Enviando PIN...', text:'Revisa tu correo en unos segundos', allowOutsideClick:false, didOpen:()=>Swal.showLoading()});
+      if(!email || !pass || !nombre || !nick) return Swal.fire('Atención', 'Todos los campos son obligatorios', 'warning');
+      if(pass.length < 6) return Swal.fire('Atención', 'La contraseña debe tener al menos 6 caracteres', 'warning');
       
-      callAPI("registrarPublicoAPI", {nombre: nombre, nick: nick, email: email, celular: cel}).then(res => {
-          Swal.fire({icon:'success', title:'Revisa tu correo', text:res});
-          document.getElementById('registroForm').classList.add('d-none');
-      }).catch(err => Swal.fire({icon:'error', text:err.message}));
-    }
+      Swal.fire({title:'Creando cuenta segura...', allowOutsideClick:false, didOpen:()=>Swal.showLoading()});
+      
+      try {
+        // 1. Crear el usuario en la bóveda de Auth
+        const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
+        const user = userCredential.user;
+
+        // 2. Guardar sus datos en la Base de Datos (Firestore)
+        await setDoc(doc(db, "usuarios", user.uid), {
+          nombre: nombre,
+          nick: nick,
+          email: email,
+          rol: "publico",
+          fechaRegistro: new Date()
+        });
+
+        Swal.fire('¡Éxito!', 'Tu cuenta ha sido creada. Ya puedes ingresar.', 'success');
+        document.getElementById('registroForm').classList.add('d-none');
+      } catch (error) {
+        let msg = error.code === 'auth/email-already-in-use' ? 'Este correo ya está registrado.' : error.message;
+        Swal.fire('Error', msg, 'error');
+      }
+    };
     
-    function loginPublico() {
-      let email = document.getElementById('emailPub').value, pin = document.getElementById('pinPub').value;
-      if(!email || !pin) return Swal.fire({icon:'warning', text:'Completa correo y PIN'});
+    window.loginPublico = async () => {
+      let email = document.getElementById('emailPub').value;
+      let pass = document.getElementById('passPub').value;
+      if(!email || !pass) return Swal.fire('Atención', 'Ingresa correo y contraseña', 'warning');
       Swal.fire({title:'Verificando...', allowOutsideClick:false, didOpen:()=>Swal.showLoading()});
       
-      callAPI("loginPublicoAPI", {email: email, pin: pin}).then(user => {
-        iniciarSesionExitosa(user.id, user.nombre); 
-      }).catch(err => Swal.fire({icon:'error', text:err.message}));
-    }
+      try {
+        const userCredential = await signInWithEmailAndPassword(auth, email, pass);
+        const user = userCredential.user;
+
+        // Extraer el nombre del usuario desde la base de datos
+        const docSnap = await getDoc(doc(db, "usuarios", user.uid));
+        if (docSnap.exists()) {
+           iniciarSesionExitosa(user.uid, docSnap.data().nombre); 
+        } else {
+           Swal.fire('Error', 'Perfil de usuario no encontrado', 'error');
+        }
+      } catch (error) {
+        Swal.fire('Error', 'Correo o contraseña incorrectos', 'error');
+      }
+    };
     
     function iniciarSesionExitosa(id, nombre) {
       loggedUserId = id;
       document.getElementById('loginArea').classList.add('d-none');
       document.getElementById('pronosticosArea').classList.remove('d-none');
       document.getElementById('saludoUsuario').innerText = '👋 Hola, ' + nombre;
-      callAPI("getPartidosParaJugadoresAPI").then(mostrarPartidos);
-    }
-    
-    function mostrarPartidos(partidos) {
-      let container = document.getElementById('partidosContainer');
-      if(partidos.length === 0) return container.innerHTML = '<div class="alert alert-info">No hay partidos activos.</div>';
-      let html = '';
-      partidos.forEach(p => {
-        let disabledAttr = p.bloqueado ? 'disabled' : '';
-        let btnClase = p.bloqueado ? 'btn-secondary' : 'btn-primary btn-match-save';
-        let btnTexto = p.bloqueado ? '🔒 Cerrado' : 'Guardar';
-        let onClickAction = p.bloqueado ? '' : `onclick="guardarMiPronostico('${p.id}', this)"`;
-        html += `
-          <div class="match-card d-flex justify-content-between align-items-center flex-wrap gap-2 ${p.bloqueado?'opacity-75':''}">
-            <div><small class="text-muted fw-bold">${p.jornada}</small><br><span class="fs-5">${p.local} vs ${p.visita}</span></div>
-            <div class="d-flex align-items-center gap-2">
-              <input type="number" id="pl_${p.id}" class="form-control score-input" min="0" oninput="this.value = Math.abs(this.value)" ${disabledAttr}> -
-              <input type="number" id="pv_${p.id}" class="form-control score-input" min="0" oninput="this.value = Math.abs(this.value)" ${disabledAttr}>
-              <button class="btn ${btnClase} ms-2 px-3" ${onClickAction} ${disabledAttr}>${btnTexto}</button>
-            </div>
-          </div>`;
-      });
-      container.innerHTML = html;
-      callAPI("getPronosticosParticipanteAPI", {idUsuario: loggedUserId}).then(misPronosticos => {
-         Swal.close();
-         misPronosticos.forEach(p => {
-            let inputLocal = document.getElementById(`pl_${p.idPartido}`), inputVisita = document.getElementById(`pv_${p.idPartido}`);
-            let btn = document.querySelector(`button[onclick*="${p.idPartido}"]`);
-            if(inputLocal && inputVisita) {
-               inputLocal.value = p.local; inputVisita.value = p.visita;
-               if(btn) { btn.innerHTML = '✅ Guardado'; btn.classList.replace('btn-primary', 'btn-success'); }
-            }
-         });
-      });
+      Swal.close();
+      // Nota: La carga de partidos la activaremos en el siguiente paso.
     }
 
-    function guardarMiPronostico(idPartido, btn) {
-      let pl = document.getElementById(`pl_${idPartido}`).value, pv = document.getElementById(`pv_${idPartido}`).value;
-      if(pl === "" || pv === "") return Swal.fire({ icon: 'warning', text: 'Faltan goles.'});
-      Swal.fire({ title: 'Guardando...', didOpen: () => Swal.showLoading() });
-      callAPI("guardarPronosticoAPI", {idUsuario: loggedUserId, idPartido: idPartido, pl: parseInt(pl), pv: parseInt(pv)}).then(() => {
-          Swal.fire({ icon: 'success', title: '¡Anotado!', timer: 1000, showConfirmButton: false });
-          btn.innerHTML = '✅ Guardado'; btn.classList.replace('btn-primary', 'btn-success');
-      }).catch(err => Swal.fire({icon:'error', text:err.message}));
-    }
-
-    function guardarTodoMasivo() {
-      let inputsLocal = document.querySelectorAll('input[id^="pl_"]:not([disabled])');
-      let listaGuardar = [];
-      inputsLocal.forEach(inputL => {
-         let idPartido = inputL.id.replace('pl_', ''), inputV = document.getElementById(`pv_${idPartido}`);
-         if(inputL.value !== "" && inputV.value !== "") {
-            listaGuardar.push({ idPartido: idPartido, local: parseInt(inputL.value), visita: parseInt(inputV.value) });
-         }
-      });
-      if(listaGuardar.length === 0) return Swal.fire({ icon: 'warning', text: 'No hay nada nuevo para guardar.'});
-      Swal.fire({ title: 'Guardando todos...', didOpen: () => Swal.showLoading() });
-      callAPI("guardarPronosticosMasivosAPI", {idUsuario: loggedUserId, lista: listaGuardar}).then(res => {
-          Swal.fire({ icon: 'success', title: '¡Listo!', text: res, timer: 1500, showConfirmButton: false });
-          listaGuardar.forEach(p => {
-             let btn = document.querySelector(`button[onclick*="${p.idPartido}"]`);
-             if(btn) { btn.innerHTML = '✅ Guardado'; btn.classList.replace('btn-primary', 'btn-success'); }
-          });
-      }).catch(err => Swal.fire({icon:'error', text:err.message}));
-    }
+    window.cerrarSesion = async () => {
+       await signOut(auth);
+       location.reload();
+    };
   </script>
 </body>
 </html>
