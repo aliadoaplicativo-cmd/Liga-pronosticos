@@ -115,10 +115,10 @@
       Swal.fire({title: 'Verificando...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
       
       try {
-        // 1. Primero le pregunta al guardia de Excel si la clave es correcta
+        // 1. Verifica la clave
         await callAPI("verificarAdminAPI", {password: pass});
         
-        // 2. Si el guardia dice "OK", guarda la clave y carga el panel
+        // 2. Si es correcta, carga el panel
         globalPass = pass;
         let jornadas = await callAPI("getJornadasAPI");
         let selectJor = document.getElementById('selectJornadaCierre');
@@ -131,8 +131,8 @@
         document.getElementById('loginArea').classList.add('d-none');
         document.getElementById('adminPanel').classList.remove('d-none');
       } catch (err) {
-        // Si el guardia rechaza la clave, muestra error y no abre el panel
-        Swal.fire('Acceso Denegado', 'La contraseña es incorrecta.', 'error');
+        // AHORA SÍ NOS DIRÁ EL ERROR REAL
+        Swal.fire('Atención', err.message, 'error');
       }
     };
 
