@@ -58,7 +58,7 @@
     const db = getFirestore(app);
 
     // PEGA AQUÍ TU URL DE APPS SCRIPT (El que lee tu Excel)
-    const SCRIPT_URL = "TU_URL_DE_APPS_SCRIPT_AQUI";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzDQRJoNBzQG63to2JDb8P6nvko6ZaRBTrVpQGu554xG_COXYkmVewDfJDx76RBoE9oow/exec";
 
     async function callAPI(accion, params = {}) {
       const res = await fetch(SCRIPT_URL, {
