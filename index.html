@@ -9,9 +9,16 @@
     body { background-color: #f4f6f9; }
     .top-banner { background-color: #ffffff; padding: 15px 0; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border-bottom: 3px solid #d4ff00; }
     .top-banner img { height: 60px; object-fit: contain; }
-    .header-app { background: linear-gradient(135deg, #3f2b6e 0%, #2a1b4e 100%) !important; color: white; padding: 2rem 0; text-align: center;}
-    .table-container { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-top: -30px; }
-    .table thead { background-color: #1a1a1a; color: white; }
+    .header-app { background: linear-gradient(135deg, #3f2b6e 0%, #2a1b4e 100%) !important; color: white; padding: 2.5rem 0 4rem 0; text-align: center; }
+    .table-container { background: white; border-radius: 12px; padding: 25px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); margin-top: -45px; }
+    .table thead th { background-color: #1a1a1a; color: white; border: none; padding: 12px; }
+    .fila-jugador { cursor: pointer; transition: background 0.2s; }
+    .fila-jugador:hover { background-color: #f1eff7 !important; }
+    .ver-mas-link { font-size: 0.78rem; color: #0d6efd; text-decoration: none; margin-left: 8px; font-weight: normal; }
+    .modal-header-aliado { background-color: #3f2b6e; color: white; }
+    .stat-boxExacto { border: 2px solid #198754; border-radius: 10px; padding: 15px; text-align: center; color: #198754; }
+    .stat-boxGanador { border: 2px solid #0dcaf0; border-radius: 10px; padding: 15px; text-align: center; color: #0aa2c0; }
+    .stat-boxTotal { background-color: #3f2b6e; border-radius: 10px; padding: 15px; text-align: center; color: white; }
     .footer-empresa { background-color: #f8f9fa; text-align: center; padding: 30px 15px; margin-top: 60px; color: #3f2b6e; }
     .footer-logo { height: 50px; margin-bottom: 10px; object-fit: contain; }
   </style>
@@ -20,17 +27,32 @@
   <div class="top-banner"><img src="anuncio.png" alt="Anuncio Aliado"></div>
   
   <div class="header-app">
-    <h2>🏆 Liga de Pronósticos</h2>
-    <p>Tabla de Clasificación General</p>
+    <h2 class="fw-bold">🏆 Liga de Pronósticos</h2>
+    <p class="mb-0 text-white-50">Haz clic en un participante para ver su rendimiento detallado</p>
   </div>
   
-  <div class="container mb-5" style="max-width: 800px;">
+  <div class="container mb-5" style="max-width: 850px;">
     <div class="table-container">
       
+      <!-- Cabecera y Filtros -->
+      <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+        <h4 class="fw-bold m-0" style="color: #3f2b6e;">Clasificación</h4>
+        <div class="d-flex gap-2">
+          <select id="filtroFechaTabla" class="form-select form-select-sm" style="width: auto;" onchange="renderizarTabla()">
+            <option value="TODAS">📅 Todas las fechas</option>
+          </select>
+          <select id="filtroRolTabla" class="form-select form-select-sm" style="width: auto;" onchange="renderizarTabla()">
+            <option value="TODOS">🌎 General (Todos)</option>
+            <option value="VIP">⭐ Solo VIP</option>
+            <option value="publico">👥 Solo Público</option>
+          </select>
+        </div>
+      </div>
+
       <!-- Spinner de Carga -->
       <div id="loading" class="text-center py-5">
         <div class="spinner-border text-primary" role="status"></div>
-        <p class="mt-2 text-muted fw-bold">Calculando posiciones en tiempo real...</p>
+        <p class="mt-2 text-muted fw-bold">Cargando posiciones en tiempo real...</p>
       </div>
       
       <!-- Tabla de Posiciones -->
@@ -39,16 +61,71 @@
           <thead>
             <tr>
               <th style="width: 15%">Pos</th>
-              <th class="text-start" style="width: 60%">Participante</th>
-              <th style="width: 25%">Puntos</th>
+              <th class="text-start" style="width: 65%">Participante</th>
+              <th style="width: 20%">Puntos</th>
             </tr>
           </thead>
-          <tbody id="cuerpoTabla">
-            <!-- Los datos se inyectarán aquí -->
-          </tbody>
+          <tbody id="cuerpoTabla"></tbody>
         </table>
       </div>
       
+    </div>
+  </div>
+
+  <!-- MODAL DE DESGLOSE DE RENDIMIENTO -->
+  <div class="modal fade" id="modalDesglose" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content border-0 shadow">
+        <div class="modal-header modal-header-aliado">
+          <h5 class="modal-title fw-bold">Desglose de Rendimiento</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-4">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 id="modalNombreJugador" class="fw-bold m-0">Jugador</h4>
+            <select id="filtroFechaModal" class="form-select form-select-sm" style="width: auto;" onchange="actualizarVistaModal()">
+              <option value="TODAS">Todas las fechas</option>
+            </select>
+          </div>
+
+          <!-- Cajas de Resumen -->
+          <div class="row g-3 mb-4">
+            <div class="col-4">
+              <div class="stat-boxExacto">
+                <h2 id="modExactos" class="fw-bold m-0">0</h2>
+                <small class="text-muted d-block lh-sm mt-1">Marcadores<br>Exactos</small>
+              </div>
+            </div>
+            <div class="col-4">
+              <div class="stat-boxGanador">
+                <h2 id="modGanadores" class="fw-bold m-0">0</h2>
+                <small class="text-muted d-block lh-sm mt-1">Aciertos<br>Ganador</small>
+              </div>
+            </div>
+            <div class="col-4">
+              <div class="stat-boxTotal">
+                <h2 id="modPuntos" class="fw-bold m-0">0</h2>
+                <small class="text-white-50 d-block lh-sm mt-1">Puntos<br>Totales</small>
+              </div>
+            </div>
+          </div>
+
+          <h6 class="text-muted fw-bold mb-2">Historial de Pronósticos</h6>
+          <div class="table-responsive">
+            <table class="table table-bordered align-middle text-center mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th class="text-start">Partido</th>
+                  <th>Su Pronóstico</th>
+                  <th>Resultado Real</th>
+                  <th>Pts</th>
+                </tr>
+              </thead>
+              <tbody id="tablaHistorialModal"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -57,10 +134,10 @@
     <img src="logo2.png" alt="Aliado" class="footer-logo">
   </footer>
 
-  <!-- CONEXIÓN A FIREBASE -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
-    import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDl95kPyGtbK5_6PP7i-joBS7fXY2BLXYg",
@@ -74,48 +151,193 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    async function cargarClasificacion() {
+    let usuariosGlobal = [];
+    let partidosMap = {};
+    let reglasPuntos = { exacto: 3, ganador: 1 };
+    let cachePronosticos = {};
+    let usuarioSeleccionado = null;
+    let modalInstance = null;
+
+    async function inicializarDatos() {
       try {
-        // Ordena automáticamente a los usuarios de mayor a menor puntaje
-        const q = query(collection(db, "usuarios"), orderBy("puntos", "desc"));
-        const snapshot = await getDocs(q);
-        
-        let html = "";
-        let pos = 1;
-        
-        snapshot.forEach(doc => {
-          let u = doc.data();
-          let puntos = u.puntos || 0; // Si no tiene puntos aún, muestra 0
-          
-          // Etiqueta visual si el usuario es VIP
-          let etiquetaVIP = u.rol === 'VIP' ? '<span class="badge bg-warning text-dark ms-2" style="font-size:0.7rem;">VIP</span>' : '';
-          
-          html += `
-          <tr>
-            <td class="fw-bold fs-5 text-muted">${pos}</td>
-            <td class="text-start fw-bold" style="font-size: 1.1rem;">
-               ${u.nick || u.nombre} ${etiquetaVIP}
-            </td>
-            <td class="fw-bold text-primary" style="font-size: 1.3rem;">${puntos}</td>
-          </tr>`;
-          pos++;
+        // 1. Cargar Reglas
+        const reglasDoc = await getDoc(doc(db, "configuracion", "reglas"));
+        if (reglasDoc.exists()) reglasPuntos = reglasDoc.data();
+
+        // 2. Cargar Partidos y armar lista de Fechas
+        const partSnap = await getDocs(collection(db, "partidos"));
+        let fechasSet = new Set();
+        partSnap.forEach(d => {
+          let p = d.data();
+          partidosMap[d.id] = p;
+          if (p.jornada) fechasSet.add(p.jornada);
         });
 
-        if(html === "") {
-            html = '<tr><td colspan="3" class="py-4 text-muted fw-bold">Aún no hay participantes registrados.</td></tr>';
-        }
+        let selectTabla = document.getElementById('filtroFechaTabla');
+        let selectModal = document.getElementById('filtroFechaModal');
+        Array.from(fechasSet).sort().forEach(f => {
+          selectTabla.innerHTML += `<option value="${f}">${f}</option>`;
+          selectModal.innerHTML += `<option value="${f}">${f}</option>`;
+        });
 
-        document.getElementById('cuerpoTabla').innerHTML = html;
+        // 3. Cargar Usuarios
+        const userSnap = await getDocs(collection(db, "usuarios"));
+        userSnap.forEach(d => {
+          usuariosGlobal.push({ uid: d.id, ...d.data() });
+        });
+
+        renderizarTabla();
         document.getElementById('loading').classList.add('d-none');
         document.getElementById('tableContent').classList.remove('d-none');
-        
-      } catch(err) {
-         document.getElementById('loading').innerHTML = '<p class="text-danger fw-bold">Error cargando los datos del servidor.</p>';
+      } catch (err) {
+        document.getElementById('loading').innerHTML = '<p class="text-danger fw-bold">Error cargando datos.</p>';
       }
     }
-    
-    // Iniciar la carga al abrir la página
-    cargarClasificacion();
+
+    function calcularPuntosPartido(prGL, prGV, realGL, realGV) {
+      if (realGL === undefined || realGV === undefined || realGL === null || realGV === null || isNaN(realGL) || isNaN(realGV)) return null;
+      if (prGL === realGL && prGV === realGV) return { pts: reglasPuntos.exacto, tipo: 'exacto' };
+      let difReal = realGL - realGV;
+      let difPr = prGL - prGV;
+      if ((difReal > 0 && difPr > 0) || (difReal < 0 && difPr < 0) || (difReal === 0 && difPr === 0)) {
+        return { pts: reglasPuntos.ganador, tipo: 'ganador' };
+      }
+      return { pts: 0, tipo: 'fallo' };
+    }
+
+    window.renderizarTabla = async () => {
+      let rolFiltro = document.getElementById('filtroRolTabla').value;
+      let fechaFiltro = document.getElementById('filtroFechaTabla').value;
+
+      let listaFiltrada = usuariosGlobal.filter(u => {
+        if (rolFiltro === "TODOS") return true;
+        return (u.rol || "publico") === rolFiltro;
+      });
+
+      // Si filtran por una fecha específica, aseguramos tener sus pronósticos para sumar solo esa fecha
+      if (fechaFiltro !== "TODAS") {
+        await Promise.all(listaFiltrada.map(async u => {
+          if (!cachePronosticos[u.uid]) {
+            const snap = await getDocs(collection(db, "usuarios", u.uid, "pronosticos"));
+            cachePronosticos[u.uid] = snap.docs.map(d => d.data());
+          }
+        }));
+      }
+
+      let listaConPuntos = listaFiltrada.map(u => {
+        let ptsMostrar = u.puntos || 0;
+        if (fechaFiltro !== "TODAS") {
+          ptsMostrar = 0;
+          let misPronos = cachePronosticos[u.uid] || [];
+          misPronos.forEach(pr => {
+            let part = partidosMap[pr.partidoId];
+            if (part && part.jornada === fechaFiltro && part.estado === "Finalizado") {
+              let res = calcularPuntosPartido(parseInt(pr.golesLocal), parseInt(pr.golesVisita), parseInt(part.golesLocalReal), parseInt(part.golesVisitaReal));
+              if (res) ptsMostrar += res.pts;
+            }
+          });
+        }
+        return { ...u, ptsMostrar };
+      });
+
+      listaConPuntos.sort((a, b) => b.ptsMostrar - a.ptsMostrar);
+
+      let html = "";
+      let pos = 1;
+      listaConPuntos.forEach(u => {
+        let medalla = pos === 1 ? '🥇' : pos === 2 ? '🥈' : pos === 3 ? '🥉' : pos;
+        let etiquetaVIP = u.rol === 'VIP' ? '<span class="badge bg-warning text-dark ms-2" style="font-size:0.7rem;">⭐ VIP</span>' : '';
+        let nombreMostrar = u.nick || u.nombre || 'Participante';
+
+        html += `
+        <tr class="fila-jugador" onclick="abrirDesglose('${u.uid}')">
+          <td class="fw-bold fs-5 text-muted">${medalla}</td>
+          <td class="text-start fw-bold" style="font-size: 1.05rem;">
+            ${nombreMostrar} ${etiquetaVIP}
+            <span class="ver-mas-link">🔍 Ver más</span>
+          </td>
+          <td class="fw-bold text-primary" style="font-size: 1.3rem;">${u.ptsMostrar}</td>
+        </tr>`;
+        pos++;
+      });
+
+      if (html === "") {
+        html = '<tr><td colspan="3" class="py-4 text-muted fw-bold">No hay participantes en esta categoría.</td></tr>';
+      }
+      document.getElementById('cuerpoTabla').innerHTML = html;
+    };
+
+    window.abrirDesglose = async (uid) => {
+      usuarioSeleccionado = usuariosGlobal.find(u => u.uid === uid);
+      if (!usuarioSeleccionado) return;
+
+      document.getElementById('modalNombreJugador').innerText = usuarioSeleccionado.nick || usuarioSeleccionado.nombre;
+      document.getElementById('filtroFechaModal').value = document.getElementById('filtroFechaTabla').value;
+      document.getElementById('tablaHistorialModal').innerHTML = '<tr><td colspan="4" class="py-3"><div class="spinner-border spinner-border-sm text-primary"></div> Cargando...</td></tr>';
+
+      if (!modalInstance) modalInstance = new bootstrap.Modal(document.getElementById('modalDesglose'));
+      modalInstance.show();
+
+      if (!cachePronosticos[uid]) {
+        const snap = await getDocs(collection(db, "usuarios", uid, "pronosticos"));
+        cachePronosticos[uid] = snap.docs.map(d => d.data());
+      }
+
+      actualizarVistaModal();
+    };
+
+    window.actualizarVistaModal = () => {
+      if (!usuarioSeleccionado) return;
+      let uid = usuarioSeleccionado.uid;
+      let fechaSel = document.getElementById('filtroFechaModal').value;
+      let misPronos = cachePronosticos[uid] || [];
+
+      let exactos = 0; let ganadores = 0; let puntos = 0;
+      let filasHTML = "";
+
+      misPronos.forEach(pr => {
+        let part = partidosMap[pr.partidoId];
+        if (!part) return;
+        if (fechaSel !== "TODAS" && part.jornada !== fechaSel) return;
+
+        let tieneReal = part.estado === "Finalizado" && part.golesLocalReal !== undefined;
+        let realTexto = tieneReal ? `${part.golesLocalReal} - ${part.golesVisitaReal}` : '<span class="text-muted small">Pendiente</span>';
+        let ptsTexto = '-';
+        let badgeColor = 'bg-secondary';
+
+        if (tieneReal) {
+          let calc = calcularPuntosPartido(parseInt(pr.golesLocal), parseInt(pr.golesVisita), parseInt(part.golesLocalReal), parseInt(part.golesVisitaReal));
+          if (calc) {
+            puntos += calc.pts;
+            if (calc.tipo === 'exacto') { exactos++; badgeColor = 'bg-success'; ptsTexto = `+${calc.pts}`; }
+            else if (calc.tipo === 'ganador') { ganadores++; badgeColor = 'bg-info text-dark'; ptsTexto = `+${calc.pts}`; }
+            else { badgeColor = 'bg-light text-muted border'; ptsTexto = '0'; }
+          }
+        }
+
+        filasHTML += `
+        <tr>
+          <td class="text-start">
+            <div class="small text-muted fw-bold">${part.jornada}</div>
+            <div class="fw-bold">${part.local} vs ${part.visita}</div>
+          </td>
+          <td class="fw-bold fs-5">${pr.golesLocal} - ${pr.golesVisita}</td>
+          <td class="fw-bold fs-5">${realTexto}</td>
+          <td><span class="badge ${badgeColor} fs-6">${ptsTexto}</span></td>
+        </tr>`;
+      });
+
+      if (filasHTML === "") {
+        filasHTML = '<tr><td colspan="4" class="py-4 text-muted">Aún no hay pronósticos en esta fecha.</td></tr>';
+      }
+
+      document.getElementById('modExactos').innerText = exactos;
+      document.getElementById('modGanadores').innerText = ganadores;
+      document.getElementById('modPuntos').innerText = puntos;
+      document.getElementById('tablaHistorialModal').innerHTML = filasHTML;
+    };
+
+    inicializarDatos();
   </script>
 </body>
 </html>
