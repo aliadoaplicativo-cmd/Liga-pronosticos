@@ -13,6 +13,7 @@
     .top-banner img { height: 60px; object-fit: contain; }
     .footer-empresa { background-color: #f8f9fa; text-align: center; padding: 30px 15px; margin-top: 60px; color: #3f2b6e; }
     .footer-logo { height: 50px; margin-bottom: 10px; object-fit: contain; }
+    .admin-card { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; border-top: 4px solid #3f2b6e; }
   </style>
 </head>
 <body>
@@ -23,15 +24,51 @@
 
   <div class="header-app text-center"><h2>⚙️ Panel de Control Aliado</h2></div>
   
-  <div class="container mt-5 text-center" style="max-width: 600px;">
-    <div class="card p-5 shadow-sm border-0 border-top border-warning border-4">
-      <h4 class="mb-4 text-dark fw-bold">Gestión de Base de Datos</h4>
-      <p class="text-muted mb-4">Usa este botón cada vez que agregues nuevos partidos en tu Google Sheets para enviarlos a la aplicación de los usuarios.</p>
-      
-      <button class="btn btn-warning btn-lg fw-bold shadow-sm" onclick="sincronizarPartidos()">
-        🔄 Sincronizar Partidos a Firebase
-      </button>
+  <!-- ZONA DE LOGIN (Protección del Panel) -->
+  <div class="container mt-5" style="max-width: 500px;" id="loginArea">
+    <div class="card p-4 shadow-sm text-center">
+      <h5 class="mb-3">Acceso Administrador</h5>
+      <input type="password" id="adminPass" class="form-control mb-3 text-center" placeholder="Contraseña Maestra">
+      <button class="btn btn-dark w-100 fw-bold" onclick="ingresarAdmin()">Ingresar al Panel</button>
     </div>
+  </div>
+
+  <!-- ZONA DE ADMINISTRACIÓN (Oculta hasta poner clave) -->
+  <div class="container mt-4 d-none" style="max-width: 800px;" id="adminPanel">
+    
+    <div class="row">
+      <!-- MÓDULO 1: SINCRONIZAR A FIREBASE -->
+      <div class="col-md-12">
+        <div class="admin-card border-warning">
+          <h5 class="text-warning fw-bold mb-3">1. Sincronización Pública (Firebase)</h5>
+          <p class="text-muted small">Usa este botón cuando actualices partidos en tu Excel para enviarlos a la plataforma del público.</p>
+          <button class="btn btn-warning w-100 fw-bold shadow-sm py-2" onclick="sincronizarPartidos()">
+            🔄 Sincronizar Partidos a la Nube
+          </button>
+        </div>
+      </div>
+
+      <!-- MÓDULO 2: AGREGAR VIP -->
+      <div class="col-md-6">
+        <div class="admin-card border-success">
+          <h5 class="text-success fw-bold mb-3">2. Nuevo Usuario VIP</h5>
+          <input type="text" id="nuevoNombre" class="form-control mb-2" placeholder="Nombre del participante">
+          <input type="text" id="nuevaClave" class="form-control mb-3" placeholder="Clave de acceso">
+          <button class="btn btn-success w-100 fw-bold" onclick="crearVIP()">Crear VIP</button>
+        </div>
+      </div>
+
+      <!-- MÓDULO 3: BLOQUEO DE JORNADA -->
+      <div class="col-md-6">
+        <div class="admin-card border-danger">
+          <h5 class="text-danger fw-bold mb-3">3. Cierre de Jornada</h5>
+          <input type="text" id="selectJornadaCierre" class="form-control mb-2" placeholder="Ej: Fecha 11">
+          <input type="datetime-local" id="inputFechaCierre" class="form-control mb-3">
+          <button class="btn btn-danger w-100 fw-bold" onclick="establecerCierre()">🔒 Bloquear Pronósticos</button>
+        </div>
+      </div>
+    </div>
+    <div class="text-center mt-3"><button class="btn btn-outline-secondary" onclick="location.reload()">Salir del Panel</button></div>
   </div>
 
   <!-- PIE DE PÁGINA -->
@@ -44,7 +81,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
     import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
 
-    // LLAVES DE ALIADO
+    // TUS LLAVES DE FIREBASE (ALIADO)
     const firebaseConfig = {
       apiKey: "AIzaSyDl95kPyGtbK5_6PP7i-joBS7fXY2BLXYg",
       authDomain: "liga-pronosticos-aliado.firebaseapp.com",
@@ -57,8 +94,10 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // PEGA AQUÍ TU URL DE APPS SCRIPT (El que lee tu Excel)
+    // PEGA AQUÍ TU URL DE APPS SCRIPT
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzDQRJoNBzQG63to2JDb8P6nvko6ZaRBTrVpQGu554xG_COXYkmVewDfJDx76RBoE9oow/exec";
+    
+    let globalPass = "";
 
     async function callAPI(accion, params = {}) {
       const res = await fetch(SCRIPT_URL, {
@@ -71,35 +110,57 @@
       return json.data;
     }
 
+    // Ingreso al Panel
+    window.ingresarAdmin = () => {
+      let pass = document.getElementById('adminPass').value;
+      if(!pass) return Swal.fire('Error', 'Ingresa la contraseña', 'warning');
+      globalPass = pass;
+      document.getElementById('loginArea').classList.add('d-none');
+      document.getElementById('adminPanel').classList.remove('d-none');
+    };
+
+    // Crear VIP en Excel
+    window.crearVIP = () => {
+      let n = document.getElementById('nuevoNombre').value;
+      let c = document.getElementById('nuevaClave').value;
+      if(!n || !c) return Swal.fire('Atención', 'Completa nombre y clave', 'warning');
+      
+      Swal.fire({title: 'Guardando...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
+      // Llama a la función que tenías en tu script original
+      callAPI("registrarParticipanteAPI", {password: globalPass, nombre: n, clave: c, tipo: "VIP"})
+      .then(res => {
+         Swal.fire({ icon: 'success', title: 'Creado', timer: 1500, showConfirmButton: false });
+         document.getElementById('nuevoNombre').value = '';
+         document.getElementById('nuevaClave').value = '';
+      }).catch(err => Swal.fire('Error', err.message, 'error'));
+    };
+
+    // Bloquear Jornada en Excel
+    window.establecerCierre = () => {
+      let j = document.getElementById('selectJornadaCierre').value;
+      let f = document.getElementById('inputFechaCierre').value;
+      if(!j || !f) return Swal.fire({ icon: 'warning', text: 'Selecciona la jornada y la fecha límite.' });
+      
+      Swal.fire({ title: 'Bloqueando...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+      callAPI("guardarCierreAPI", {password: globalPass, jornada: j, fecha: f})
+      .then(res => Swal.fire({ icon: 'success', title: '¡Bloqueo Activo!', text: res, timer: 2000, showConfirmButton: false }))
+      .catch(err => Swal.fire('Error', err.message, 'error'));
+    };
+
+    // Sincronizar a Firebase
     window.sincronizarPartidos = async () => {
       Swal.fire({title: 'Leyendo Excel...', text: 'Obteniendo partidos...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
-      
       try {
-        // 1. Llama a tu Excel para traer los partidos
         const partidos = await callAPI("getPartidosParaJugadoresAPI");
-        
-        if(partidos.length === 0) {
-            return Swal.fire('Atención', 'No hay partidos en el Excel para sincronizar.', 'warning');
-        }
+        if(partidos.length === 0) return Swal.fire('Atención', 'No hay partidos en el Excel para sincronizar.', 'warning');
 
         Swal.fire({title: 'Subiendo a Firebase...', text: 'Actualizando plataforma...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
-
-        // 2. Guarda cada partido en Firestore
         const promesas = partidos.map(p => {
           const docRef = doc(db, "partidos", p.id);
-          return setDoc(docRef, {
-            id: p.id,
-            jornada: p.jornada,
-            local: p.local,
-            visita: p.visita,
-            bloqueado: p.bloqueado
-          });
+          return setDoc(docRef, { id: p.id, jornada: p.jornada, local: p.local, visita: p.visita, bloqueado: p.bloqueado });
         });
-
         await Promise.all(promesas);
-
         Swal.fire('¡Éxito!', `Se sincronizaron ${partidos.length} partidos a la Nube correctamente.`, 'success');
-
       } catch (error) {
         Swal.fire('Error', error.message, 'error');
       }
