@@ -3,131 +3,66 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Panel Administrador</title>
+  <title>Panel Administrador | Aliado</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <style>
-    body { background-color: #f8f9fa; }
-    .admin-card { margin: 10px auto; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); background: white;}
-    .match-card { border-left: 5px solid #1a365d; background: white; margin-bottom: 15px; padding: 15px; border-radius: 8px; border: 1px solid #eee;}
-    .score-input { width: 70px !important; text-align: center; font-weight: bold; font-size: 1.2rem;}
-  /* --- ESTILOS DE LA MARCA ALIADO --- */
-    .top-banner {
-      background-color: #ffffff; /* Fondo blanco para el logo */
-      padding: 15px 0;
-      text-align: center;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-      position: relative;
-      z-index: 10;
-      border-bottom: 3px solid #d4ff00; /* Línea verde lima de Aliado */
-    }
-    .top-banner img {
-      height: 60px; /* Tamaño ideal para celulares y PC */
-      object-fit: contain;
-    }
-    /* Cambiamos el azul genérico por el Morado Aliado */
-    .header-app { 
-      background: linear-gradient(135deg, #3f2b6e 0%, #2a1b4e 100%) !important; 
-    }
-    /* Estilos del pie de página */
-    .footer-empresa {
-      background-color: #f8f9fa;
-      text-align: center;
-      padding: 30px 15px;
-      margin-top: 60px;
-      color: #3f2b6e;
-    }
-    .btn-whatsapp {
-      background-color: #25D366;
-      color: white;
-      padding: 10px 20px;
-      border-radius: 50px;
-      text-decoration: none;
-      font-weight: bold;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      box-shadow: 0 4px 6px rgba(37,211,102,0.3);
-      transition: transform 0.2s;
-    }
-    .btn-whatsapp:hover {
-      transform: scale(1.05);
-      color: white;
-    }
-
-    .footer-logo {
-      height: 50px;
-      margin-bottom: 10px;
-      object-fit: contain;
-    }
+    body { background-color: #f4f6f9; }
+    .header-app { background: linear-gradient(135deg, #3f2b6e 0%, #2a1b4e 100%) !important; color: white; padding: 2rem 0; }
+    .top-banner { background-color: #ffffff; padding: 15px 0; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); position: relative; z-index: 10; border-bottom: 3px solid #d4ff00; }
+    .top-banner img { height: 60px; object-fit: contain; }
+    .footer-empresa { background-color: #f8f9fa; text-align: center; padding: 30px 15px; margin-top: 60px; color: #3f2b6e; }
+    .footer-logo { height: 50px; margin-bottom: 10px; object-fit: contain; }
   </style>
 </head>
 <body>
-  <!-- BANNER SUPERIOR ALIADO -->
+  <!-- BANNER SUPERIOR -->
   <div class="top-banner">
-    <img src="anuncio.png" alt="Aliado">
+    <img src="anuncio.png" alt="Anuncio">
   </div>
-  <div class="container mt-4 mb-5" style="max-width: 900px;">
-    
-    <div class="card admin-card p-4 mx-auto mt-5" id="loginSection" style="max-width: 500px;">
-      <h3 class="text-center mb-4">⚙ Acceso Administrador</h3>
-      <input type="password" id="passInput" class="form-control form-control-lg mb-3" placeholder="Contraseña">
-      <button class="btn btn-dark btn-lg w-100" onclick="login()">Ingresar al Panel</button>
-    </div>
 
-    <div id="dashboardSection" class="d-none">
-      <div class="row g-3 mb-4">
-        
-        <div class="col-md-7">
-          <div class="admin-card p-4 h-100">
-            <h5 class="mb-3 text-primary">➕ Programar Partido</h5>
-            <div class="row g-2">
-              <div class="col-md-12 mb-2"><input list="listaJornadasOpciones" type="text" id="nuevaJornada" class="form-control" placeholder="Selecciona o escribe una Jornada..."><datalist id="listaJornadasOpciones"></datalist></div>
-              <div class="col-6"><input type="text" id="nuevoLocal" class="form-control" placeholder="Local"></div>
-              <div class="col-6"><input type="text" id="nuevoVisita" class="form-control" placeholder="Visita"></div>
-              <div class="col-12 mt-2"><button class="btn btn-primary w-100" onclick="agregarPartido()">Guardar Partido</button></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="col-md-5">
-          <div class="admin-card p-4 h-100 border-start border-success border-4 d-flex flex-column">
-            <h5 class="mb-3 text-success">👤 Nuevo Participante VIP</h5>
-            <input type="text" id="nuevoNombre" class="form-control mb-2" placeholder="Nombre">
-            <div class="input-group mb-3">
-              <input type="text" id="nuevaClave" class="form-control" placeholder="Contraseña">
-              <button class="btn btn-success" onclick="agregarParticipante()">Añadir</button>
-            </div>
-            <ul id="listaParticipantes" class="list-group list-group-flush border rounded flex-grow-1" style="max-height: 140px; overflow-y: auto;"></ul>
-          </div>
-        </div>
-
-        <div class="col-md-12">
-          <div class="admin-card p-4 border-start border-danger border-4">
-            <h5 class="mb-3 text-danger">🔒 Bloqueo de Fecha (Hora Perú)</h5>
-            <div class="row g-2 align-items-end">
-              <div class="col-md-4"><label class="form-label fw-bold small text-muted">Selecciona la Jornada</label><select id="selectJornadaCierre" class="form-select"></select></div>
-              <div class="col-md-5"><label class="form-label fw-bold small text-muted">Fecha y Hora Límite</label><input type="datetime-local" id="inputFechaCierre" class="form-control"></div>
-              <div class="col-md-3"><button class="btn btn-danger w-100" onclick="establecerCierre()">Fijar Bloqueo</button></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="admin-card p-4">
-        <h4 class="mb-4">⏱️ Ingresar Resultados Reales</h4>
-        <div id="partidosContainer"></div>
-      </div>
+  <div class="header-app text-center"><h2>⚙️ Panel de Control Aliado</h2></div>
+  
+  <div class="container mt-5 text-center" style="max-width: 600px;">
+    <div class="card p-5 shadow-sm border-0 border-top border-warning border-4">
+      <h4 class="mb-4 text-dark fw-bold">Gestión de Base de Datos</h4>
+      <p class="text-muted mb-4">Usa este botón cada vez que agregues nuevos partidos en tu Google Sheets para enviarlos a la aplicación de los usuarios.</p>
+      
+      <button class="btn btn-warning btn-lg fw-bold shadow-sm" onclick="sincronizarPartidos()">
+        🔄 Sincronizar Partidos a Firebase
+      </button>
     </div>
   </div>
 
-  <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzDQRJoNBzQG63to2JDb8P6nvko6ZaRBTrVpQGu554xG_COXYkmVewDfJDx76RBoE9oow/exec";
+  <!-- PIE DE PÁGINA -->
+  <footer class="footer-empresa">
+    <p class="mb-2 text-muted fw-bold" style="font-size: 0.85rem;">Desarrollado por:</p>
+    <img src="logo2.png" alt="Aliado" class="footer-logo">
+  </footer>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+
+    // LLAVES DE ALIADO
+    const firebaseConfig = {
+      apiKey: "AIzaSyDl95kPyGtbK5_6PP7i-joBS7fXY2BLXYg",
+      authDomain: "liga-pronosticos-aliado.firebaseapp.com",
+      projectId: "liga-pronosticos-aliado",
+      storageBucket: "liga-pronosticos-aliado.firebasestorage.app",
+      messagingSenderId: "819793391221",
+      appId: "1:819793391221:web:eb5cd4aa68938d9d13523c"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // PEGA AQUÍ TU URL DE APPS SCRIPT (El que lee tu Excel)
+    const SCRIPT_URL = "TU_URL_DE_APPS_SCRIPT_AQUI";
 
     async function callAPI(accion, params = {}) {
       const res = await fetch(SCRIPT_URL, {
-        method: 'POST',
-        redirect: 'follow',
+        method: 'POST', redirect: 'follow',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({ accion: accion, params: params })
       });
@@ -136,121 +71,39 @@
       return json.data;
     }
 
-    let globalPass = '';
-
-    function login() {
-      globalPass = document.getElementById('passInput').value;
-      Swal.fire({ title: 'Cargando...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
+    window.sincronizarPartidos = async () => {
+      Swal.fire({title: 'Leyendo Excel...', text: 'Obteniendo partidos...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
       
-      callAPI("getPartidosPendientesAPI", {password: globalPass})
-        .then(res => { Swal.close(); showDashboard(res); })
-        .catch(err => Swal.fire({ icon: 'error', title: 'Error', text: err.message }));
-    }
+      try {
+        // 1. Llama a tu Excel para traer los partidos
+        const partidos = await callAPI("getPartidosParaJugadoresAPI");
+        
+        if(partidos.length === 0) {
+            return Swal.fire('Atención', 'No hay partidos en el Excel para sincronizar.', 'warning');
+        }
 
-    function showDashboard(partidos) {
-      document.getElementById('loginSection').classList.add('d-none');
-      document.getElementById('dashboardSection').classList.remove('d-none');
-      cargarListaParticipantes();
-      cargarOpcionesJornada();
+        Swal.fire({title: 'Subiendo a Firebase...', text: 'Actualizando plataforma...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
 
-      let html = '';
-      partidos.forEach(p => {
-        html += `
-          <div class="match-card d-flex justify-content-between align-items-center flex-wrap gap-2">
-            <div><small class="text-muted fw-bold">${p.jornada}</small><br><span class="fs-5">${p.local} vs ${p.visita}</span></div>
-            <div class="d-flex align-items-center gap-2">
-              <input type="number" id="gl_${p.id}" class="form-control score-input" min="0"> <span class="fw-bold">-</span> 
-              <input type="number" id="gv_${p.id}" class="form-control score-input" min="0">
-              <button class="btn btn-dark ms-2 px-4" onclick="guardarResultado('${p.id}', this)">Registrar</button>
-            </div>
-          </div>`;
-      });
-      document.getElementById('partidosContainer').innerHTML = html || '<div class="alert alert-info">Todo al día.</div>';
-    }
-
-    function cargarOpcionesJornada() {
-      callAPI("getJornadasAPI").then(jornadas => {
-        let dl = document.getElementById('listaJornadasOpciones');
-        let sel = document.getElementById('selectJornadaCierre');
-        dl.innerHTML = ''; sel.innerHTML = '<option value="">-- Seleccionar --</option>';
-        jornadas.forEach(j => {
-           dl.innerHTML += `<option value="${j}">`;
-           sel.innerHTML += `<option value="${j}">${j}</option>`;
+        // 2. Guarda cada partido en Firestore
+        const promesas = partidos.map(p => {
+          const docRef = doc(db, "partidos", p.id);
+          return setDoc(docRef, {
+            id: p.id,
+            jornada: p.jornada,
+            local: p.local,
+            visita: p.visita,
+            bloqueado: p.bloqueado
+          });
         });
-      }).catch(err => console.error(err));
-    }
 
-    function cargarListaParticipantes() {
-      callAPI("getParticipantesAPI").then(parts => {
-        let html = '';
-        parts.forEach(p => html += `<li class="list-group-item py-1 fw-bold">${p.nombre}</li>`);
-        document.getElementById('listaParticipantes').innerHTML = html || '<li class="list-group-item text-muted">Aún no hay inscritos</li>';
-      }).catch(err => console.error(err));
-    }
+        await Promise.all(promesas);
 
-    function guardarResultado(idPartido, btn) {
-      let gl = document.getElementById(`gl_${idPartido}`).value, gv = document.getElementById(`gv_${idPartido}`).value;
-      if(gl === "" || gv === "") return Swal.fire({ icon: 'warning', text: 'Faltan goles.' });
-      Swal.fire({ title: 'Procesando...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
-      
-      callAPI("guardarResultadoAPI", {password: globalPass, idPartido: idPartido, gl: parseInt(gl), gv: parseInt(gv)})
-        .then(res => {
-          Swal.fire({ icon: 'success', title: '¡Listo!', text: res, timer: 1000, showConfirmButton: false });
-          btn.innerHTML = '✅ Guardado'; btn.classList.replace('btn-dark', 'btn-success'); btn.disabled = true; 
-        }).catch(err => Swal.fire({ icon: 'error', title: 'Error', text: err.message }));
-    }
+        Swal.fire('¡Éxito!', `Se sincronizaron ${partidos.length} partidos a la Nube correctamente.`, 'success');
 
-    function agregarPartido() {
-      let j = document.getElementById('nuevaJornada').value, l = document.getElementById('nuevoLocal').value, v = document.getElementById('nuevoVisita').value;
-      if(!j || !l || !v) return Swal.fire({ icon: 'warning', text: 'Llena la jornada y equipos.' });
-      Swal.fire({ title: 'Agregando...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
-      
-      callAPI("agregarPartidoAPI", {password: globalPass, jornada: j, local: l, visita: v})
-        .then(res => {
-          Swal.fire({ icon: 'success', title: 'Programado', timer: 1000, showConfirmButton: false });
-          document.getElementById('nuevoLocal').value = ''; document.getElementById('nuevoVisita').value = '';
-          cargarOpcionesJornada(); 
-          callAPI("getPartidosPendientesAPI", {password: globalPass}).then(showDashboard);
-        }).catch(err => Swal.fire({ icon: 'error', title: 'Error', text: err.message }));
-    }
-
-    function agregarParticipante() {
-      let nombre = document.getElementById('nuevoNombre').value;
-      let clave = document.getElementById('nuevaClave').value;
-      if(!nombre || !clave) return Swal.fire({ icon: 'warning', text: 'Ingresa nombre y contraseña.' });
-      Swal.fire({ title: 'Agregando...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
-      
-      callAPI("agregarParticipanteAPI", {password: globalPass, nombre: nombre, clave: clave})
-        .then(res => {
-          Swal.fire({ icon: 'success', title: 'Creado', timer: 1000, showConfirmButton: false });
-          document.getElementById('nuevoNombre').value = ''; document.getElementById('nuevaClave').value = '';
-          cargarListaParticipantes(); 
-        }).catch(err => Swal.fire({ icon: 'error', title: 'Error', text: err.message }));
-    }
-
-    function establecerCierre() {
-      let j = document.getElementById('selectJornadaCierre').value;
-      let f = document.getElementById('inputFechaCierre').value;
-      if(!j || !f) return Swal.fire({ icon: 'warning', text: 'Selecciona la jornada y la fecha límite.' });
-      Swal.fire({ title: 'Bloqueando...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
-      
-      callAPI("guardarCierreAPI", {password: globalPass, jornada: j, fecha: f})
-        .then(res => Swal.fire({ icon: 'success', title: '¡Bloqueo Activo!', text: res, timer: 2000, showConfirmButton: false }))
-        .catch(err => Swal.fire({ icon: 'error', title: 'Error', text: err.message }));
-    }
+      } catch (error) {
+        Swal.fire('Error', error.message, 'error');
+      }
+    };
   </script>
-  <!-- PIE DE PÁGINA -->
-  <footer class="footer-empresa">
-    <p class="mb-2 text-muted fw-bold" style="font-size: 0.85rem;">Desarrollado por:</p>
-    <img src="logo2.png" alt="Aliado" class="footer-logo">
-    <p class="mb-3" style="font-size: 0.85rem; color: #6c757d;">Plataformas Deportivas y Sistemas Web</p>
-    <a href="https://wa.me/51993801594" target="_blank" class="btn-whatsapp">
-      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
-        <path d="M13.601 2.326A7.85 7.85 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.9 7.9 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.9 7.9 0 0 0 13.6 2.326zM7.994 14.521a6.6 6.6 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.56 6.56 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592m3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.73.73 0 0 0-.529.247c-.182.198-.691.677-.691 1.654s.71 1.916.81 2.049c.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232"/>
-      </svg>
-      Escríbenos al 993 801 594
-    </a>
-  </footer>
 </body>
 </html>
-
