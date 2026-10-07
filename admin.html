@@ -136,13 +136,38 @@
       } catch (err) { Swal.fire('Atención', err.message, 'error'); }
     };
 
-    window.crearVIP = () => { /* CÓDIGO VIP (sin cambios) */
-      let n = document.getElementById('nuevoNombre').value; let c = document.getElementById('nuevaClave').value;
+    window.crearVIP = async () => {
+      let n = document.getElementById('nuevoNombre').value.trim();
+      let c = document.getElementById('nuevaClave').value.trim();
       if(!n || !c) return Swal.fire('Atención', 'Completa nombre y clave', 'warning');
-      Swal.fire({title: 'Guardando...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
-      callAPI("registrarParticipanteAPI", {password: globalPass, nombre: n, clave: c, tipo: "VIP"})
-      .then(res => { Swal.fire({ icon: 'success', title: 'Creado', timer: 1500, showConfirmButton: false }); })
-      .catch(err => Swal.fire('Error', err.message, 'error'));
+      
+      Swal.fire({title: 'Creando VIP en la Nube...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
+      
+      try {
+        // 1. Creamos un ID único para el VIP (ej. VIP_4829)
+        let vipId = "VIP_" + Math.floor(1000 + Math.random() * 9000);
+        
+        // 2. Lo guardamos directo en Firebase
+        await setDoc(doc(db, "usuarios", vipId), {
+          id: vipId,
+          nombre: n,
+          nick: n,
+          clave: c,
+          rol: "VIP",
+          puntos: 0,
+          exactos: 0,
+          aciertosGanador: 0
+        });
+
+        // 3. (Opcional) Lo anotamos también en tu Excel como respaldo
+        await callAPI("registrarParticipanteAPI", {password: globalPass, nombre: n, clave: c, tipo: "VIP"});
+
+        document.getElementById('nuevoNombre').value = "";
+        document.getElementById('nuevaClave').value = "";
+        Swal.fire({ icon: 'success', title: '¡VIP Creado!', text: `${n} ya puede ingresar en vip.html`, timer: 2000, showConfirmButton: false });
+      } catch (err) {
+        Swal.fire('Error', err.message, 'error');
+      }
     };
 
     window.establecerCierre = () => { /* CÓDIGO CIERRE (sin cambios) */
