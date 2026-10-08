@@ -111,17 +111,35 @@
       }
     };
 
-    // 2. Cargar Partidos desde Firebase
+    // 2. Cargar Partidos desde Firebase (CON RELOJ DE CIERRE AUTOMÁTICO)
+    let cierresMap = {};
+
+    function estaBloqueadoPartido(p) {
+      if (p.bloqueado) return true;
+      if (cierresMap[p.jornada]) {
+        let limite = new Date(cierresMap[p.jornada]);
+        if (new Date() >= limite) return true;
+      }
+      return false;
+    }
+
     async function cargarPartidosVIP() {
       document.getElementById('partidosContainer').innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-warning"></div><p>Cargando partidos...</p></div>';
       try {
+        const cierresSnap = await getDocs(collection(db, "cierres"));
+        cierresMap = {};
+        cierresSnap.forEach(d => {
+          cierresMap[d.id] = d.data().fechaLimite;
+        });
+
         const querySnapshot = await getDocs(collection(db, "partidos"));
         let html = '';
 
         querySnapshot.forEach((docSnap) => {
           let p = docSnap.data();
-          let disabled = p.bloqueado ? 'disabled' : '';
-          let bloqueadoUI = p.bloqueado ? '<span class="badge bg-danger ms-2">Cerrado</span>' : '';
+          let cerrado = estaBloqueadoPartido(p);
+          let disabled = cerrado ? 'disabled' : '';
+          let bloqueadoUI = cerrado ? '<span class="badge bg-danger ms-2">Cerrado</span>' : '';
 
           html += `
           <div class="match-card">
@@ -174,12 +192,15 @@
     window.guardarPronosticosVIP = async () => {
       Swal.fire({title: 'Guardando...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
       try {
+        const cierresSnap = await getDocs(collection(db, "cierres"));
+        cierresSnap.forEach(d => { cierresMap[d.id] = d.data().fechaLimite; });
+
         const querySnapshot = await getDocs(collection(db, "partidos"));
         let promesas = [];
 
         querySnapshot.forEach((docSnap) => {
           let p = docSnap.data();
-          if(!p.bloqueado) {
+          if(!estaBloqueadoPartido(p)) {
             let gl = document.getElementById('loc_' + p.id).value;
             let gv = document.getElementById('vis_' + p.id).value;
 
@@ -196,6 +217,7 @@
 
         await Promise.all(promesas);
         Swal.fire('¡Guardado!', 'Tus pronósticos VIP han sido registrados.', 'success');
+        cargarPartidosVIP();
       } catch (e) {
         Swal.fire('Error', 'Hubo un problema al guardar', 'error');
       }
