@@ -170,13 +170,26 @@
       }
     };
 
-    window.establecerCierre = () => { /* CÓDIGO CIERRE (sin cambios) */
-      let j = document.getElementById('selectJornadaCierre').value; let f = document.getElementById('inputFechaCierre').value;
+    window.establecerCierre = async () => {
+      let j = document.getElementById('selectJornadaCierre').value;
+      let f = document.getElementById('inputFechaCierre').value;
       if(!j || !f) return Swal.fire({ icon: 'warning', text: 'Selecciona la jornada y la fecha límite.' });
-      Swal.fire({ title: 'Bloqueando...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-      callAPI("guardarCierreAPI", {password: globalPass, jornada: j, fecha: f})
-      .then(res => Swal.fire({ icon: 'success', title: '¡Bloqueo Activo!', text: res, timer: 2000, showConfirmButton: false }))
-      .catch(err => Swal.fire('Error', err.message, 'error'));
+      
+      Swal.fire({ title: 'Programando cierre...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+      try {
+        // 1. Guardar en Google Sheets (como antes)
+        let res = await callAPI("guardarCierreAPI", {password: globalPass, jornada: j, fecha: f});
+        
+        // 2. NUEVO: Guardar la fecha/hora límite directamente en Firebase
+        await setDoc(doc(db, "cierres", j), {
+          jornada: j,
+          fechaLimite: f
+        });
+
+        Swal.fire({ icon: 'success', title: '¡Cierre Programado!', text: `${res} (Sincronizado en la Nube)`, timer: 2200, showConfirmButton: false });
+      } catch (err) {
+        Swal.fire('Error', err.message, 'error');
+      }
     };
 
     window.sincronizarPartidos = async () => {
