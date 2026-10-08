@@ -11,14 +11,20 @@
     .top-banner { background-color: #ffffff; padding: 15px 0; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border-bottom: 3px solid #d4ff00; }
     .top-banner img { height: 60px; object-fit: contain; }
     .header-app { background: linear-gradient(135deg, #3f2b6e 0%, #2a1b4e 100%) !important; color: white; padding: 2rem 0; border-bottom: 4px solid #d4ff00; }
+    .auth-card { border-radius: 14px; border: none; box-shadow: 0 6px 24px rgba(0,0,0,0.08); background: #ffffff; }
+    .form-label-aliado { font-size: 0.85rem; font-weight: 700; color: #2a1b4e; margin-bottom: 4px; display: block; }
+    .form-hint { font-size: 0.76rem; color: #6c757d; margin-top: 3px; display: block; }
     .match-card { background: white; margin-bottom: 15px; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-left: 5px solid #d4ff00; }
     .score-input { width: 70px !important; text-align: center; font-weight: bold; font-size: 1.2rem; border: 2px solid #3f2b6e; }
-    .btn-google { background-color: #ffffff; color: #3c4043; border: 1px solid #dadce0; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 10px; transition: background 0.2s; }
-    .btn-google:hover { background-color: #f8f9fa; border-color: #d2e3fc; }
-    .divider { display: flex; align-items: center; text-align: center; color: #6c757d; font-size: 0.85rem; margin: 18px 0; }
+    .btn-google { background-color: #ffffff; color: #3c4043; border: 2px solid #dadce0; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 10px; transition: all 0.2s; border-radius: 8px; }
+    .btn-google:hover { background-color: #f8f9fa; border-color: #3f2b6e; }
+    .divider { display: flex; align-items: center; text-align: center; color: #6c757d; font-size: 0.82rem; margin: 20px 0; font-weight: 600; }
     .divider::before, .divider::after { content: ''; flex: 1; border-bottom: 1px solid #dee2e6; }
     .divider:not(:empty)::before { margin-right: .75em; }
     .divider:not(:empty)::after { margin-left: .75em; }
+    .switch-box { background-color: #f8f9fa; border: 1px dashed #ced4da; border-radius: 10px; padding: 12px; text-align: center; margin-top: 18px; }
+    .link-recuperar { font-size: 0.8rem; color: #0d6efd; text-decoration: none; font-weight: 600; cursor: pointer; }
+    .link-recuperar:hover { text-decoration: underline; }
     .footer-empresa { background-color: #f8f9fa; text-align: center; padding: 30px 15px; margin-top: 60px; color: #3f2b6e; }
     .footer-logo { height: 50px; margin-bottom: 10px; object-fit: contain; }
   </style>
@@ -34,47 +40,100 @@
     <p class="mb-0 text-white-50">Demuestra cuánto sabes y suma puntos fecha a fecha</p>
   </div>
 
-  <!-- ZONA DE LOGIN Y REGISTRO -->
+  <!-- ZONA DE LOGIN Y REGISTRO ORDENADA -->
   <div class="container mt-4 mb-5" style="max-width: 480px;" id="authArea">
-    <div class="card p-4 shadow-sm border-0">
+    <div class="card auth-card p-4">
       
-      <!-- BOTÓN RÁPIDO DE GOOGLE -->
+      <!-- OPCIÓN RÁPIDA GOOGLE (Siempre visible arriba) -->
+      <div class="text-center mb-2">
+        <span class="badge bg-light text-dark border mb-2">Opción recomendada (1 clic)</span>
+      </div>
       <button class="btn btn-google w-100 py-2 shadow-sm" onclick="ingresarConGoogle()">
         <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" width="20" height="20">
-        Continuar con Google
+        Continuar con mi cuenta de Google
       </button>
 
-      <div class="divider">o usa tu correo electrónico</div>
+      <div class="divider">O USA TU CORREO ELECTRÓNICO</div>
 
-      <!-- PESTAÑAS INGRESAR / CREAR CUENTA -->
-      <ul class="nav nav-pills nav-fill mb-3" id="pills-tab" role="tablist">
-        <li class="nav-item" role="presentation">
-          <button class="nav-link active fw-bold" id="tab-login" data-bs-toggle="pill" data-bs-target="#pane-login" type="button">Iniciar Sesión</button>
-        </li>
-        <li class="nav-item" role="presentation">
-          <button class="nav-link fw-bold" id="tab-registro" data-bs-toggle="pill" data-bs-target="#pane-registro" type="button">Crear Cuenta</button>
-        </li>
-      </ul>
-
-      <div class="tab-content">
-        <!-- PESTAÑA 1: INICIAR SESIÓN -->
-        <div class="tab-pane fade show active" id="pane-login">
-          <input type="email" id="loginEmail" class="form-control mb-2" placeholder="Tu Correo Electrónico">
-          <input type="password" id="loginPass" class="form-control mb-3" placeholder="Tu Contraseña">
-          <button class="btn btn-primary w-100 fw-bold py-2" onclick="iniciarSesionCorreo()">Ingresar a Pronosticar</button>
+      <!-- ========================================== -->
+      <!-- VISTA 1: INICIAR SESIÓN (YA TENGO CUENTA) -->
+      <!-- ========================================== -->
+      <div id="vistaLogin">
+        <h5 class="fw-bold text-center mb-3" style="color: #3f2b6e;">🔑 Iniciar Sesión</h5>
+        
+        <div class="mb-3">
+          <label class="form-label-aliado">Correo Electrónico</label>
+          <input type="email" id="loginEmail" class="form-control" placeholder="ejemplo@correo.com">
         </div>
 
-        <!-- PESTAÑA 2: REGISTRO CON VERIFICACIÓN Y WHATSAPP -->
-        <div class="tab-pane fade" id="pane-registro">
-          <input type="text" id="regNombre" class="form-control mb-2" placeholder="Nombre y Apellido Real">
-          <input type="text" id="regNick" class="form-control mb-2" placeholder="Nickname / Apodo (Se verá en la tabla)">
-          <input type="tel" id="regCelular" class="form-control mb-2" placeholder="Celular / WhatsApp (Ej: 999888777)">
-          <input type="email" id="regEmail" class="form-control mb-2" placeholder="Correo Electrónico Real">
-          <input type="password" id="regPass" class="form-control mb-3" placeholder="Crea una Contraseña (mín. 6 caracteres)">
-          <button class="btn btn-success w-100 fw-bold py-2" onclick="registrarConCorreo()">Crear mi Cuenta</button>
-          <small class="text-muted d-block text-center mt-2" style="font-size: 0.78rem;">
-            🔒 Te enviaremos un enlace a tu correo para verificar que es real.
-          </small>
+        <div class="mb-3">
+          <div class="d-flex justify-content-between align-items-center">
+            <label class="form-label-aliado mb-0">Contraseña</label>
+            <a class="link-recuperar" onclick="recuperarContrasena()">¿Olvidaste tu contraseña?</a>
+          </div>
+          <input type="password" id="loginPass" class="form-control mt-1" placeholder="Ingresa tu contraseña">
+        </div>
+
+        <button class="btn btn-primary w-100 fw-bold py-2 shadow-sm" onclick="iniciarSesionCorreo()">
+          Ingresar a Pronosticar
+        </button>
+
+        <!-- Caja clara para ir a Registrarse -->
+        <div class="switch-box">
+          <span class="small text-muted d-block mb-1">¿Es tu primera vez participando y no usas Google?</span>
+          <button class="btn btn-outline-success btn-sm fw-bold px-3" onclick="mostrarVista('registro')">
+            ✍️ Crear una Cuenta Nueva
+          </button>
+        </div>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- VISTA 2: FORMULARIO DE REGISTRO GUIADO     -->
+      <!-- ========================================== -->
+      <div id="vistaRegistro" class="d-none">
+        <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+          <h5 class="fw-bold m-0 text-success">✍️ Registro de Participante</h5>
+          <button class="btn btn-sm btn-light border text-muted" onclick="mostrarVista('login')">← Volver</button>
+        </div>
+
+        <p class="small text-muted mb-3">Completa todos los campos para crear tu cuenta en el torneo:</p>
+
+        <div class="mb-3">
+          <label class="form-label-aliado">1. Nombre y Apellido Real *</label>
+          <input type="text" id="regNombre" class="form-control" placeholder="Ej: Juan Pérez">
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label-aliado">2. Nickname / Apodo *</label>
+          <input type="text" id="regNick" class="form-control" placeholder="Ej: Juancito10">
+          <span class="form-hint">Así aparecerás en la tabla de posiciones pública.</span>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label-aliado">3. Celular / WhatsApp *</label>
+          <input type="tel" id="regCelular" class="form-control" placeholder="Ej: 999888777">
+          <span class="form-hint">Para contactarte en caso de premios (mínimo 9 dígitos).</span>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label-aliado">4. Correo Electrónico Real *</label>
+          <input type="email" id="regEmail" class="form-control" placeholder="tucorreo@dominio.com">
+          <span class="form-hint">Te enviaremos un enlace a este correo para activar tu cuenta.</span>
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label-aliado">5. Crea una Contraseña * <span class="badge bg-warning text-dark ms-1">Mín. 6 caracteres</span></label>
+          <input type="password" id="regPass" class="form-control" placeholder="Escribe al menos 6 letras o números">
+          <span class="form-hint text-danger fw-semibold">⚠️ Importante: La contraseña debe tener mínimo 6 caracteres.</span>
+        </div>
+
+        <button class="btn btn-success w-100 fw-bold py-2 shadow-sm" onclick="registrarConCorreo()">
+          ✅ Registrarme y Enviar Verificación
+        </button>
+
+        <div class="switch-box">
+          <span class="small text-muted">¿Ya tienes una cuenta creada?</span>
+          <a href="javascript:void(0)" class="fw-bold text-primary text-decoration-none ms-1 small" onclick="mostrarVista('login')">Inicia sesión aquí</a>
         </div>
       </div>
 
@@ -112,6 +171,7 @@
       signInWithPopup, 
       GoogleAuthProvider, 
       sendEmailVerification, 
+      sendPasswordResetEmail,
       signOut 
     } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
     import { getFirestore, doc, setDoc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
@@ -132,6 +192,17 @@
 
     let currentUserUid = null;
 
+    // Alternar entre vista Login y vista Registro
+    window.mostrarVista = (vista) => {
+      if (vista === 'registro') {
+        document.getElementById('vistaLogin').classList.add('d-none');
+        document.getElementById('vistaRegistro').classList.remove('d-none');
+      } else {
+        document.getElementById('vistaRegistro').classList.add('d-none');
+        document.getElementById('vistaLogin').classList.remove('d-none');
+      }
+    };
+
     // 1. INGRESO CON BOTÓN DE GOOGLE
     window.ingresarConGoogle = async () => {
       try {
@@ -145,13 +216,16 @@
 
         if (!userSnap.exists()) {
           Swal.close();
-          // Es usuario nuevo con Google: le pedimos su Nickname y WhatsApp
           const { value: formValues } = await Swal.fire({
             title: '¡Bienvenido! Completa tu perfil',
             html:
-              `<p class="small text-muted mb-2">Para aparecer en la tabla y contactarte si ganas:</p>` +
-              `<input id="swal-nick" class="swal2-input" placeholder="Tu Nickname / Apodo" value="${user.displayName || ''}">` +
-              `<input id="swal-cel" type="tel" class="swal2-input" placeholder="Celular / WhatsApp">`,
+              `<div class="text-start">` +
+              `<p class="small text-muted mb-3">Solo necesitamos estos dos datos para mostrarte en la tabla de posiciones:</p>` +
+              `<label class="fw-bold small mb-1">1. Tu Nickname / Apodo *</label>` +
+              `<input id="swal-nick" class="form-control mb-3" placeholder="Ej: Goleador99" value="${user.displayName || ''}">` +
+              `<label class="fw-bold small mb-1">2. Tu Celular / WhatsApp *</label>` +
+              `<input id="swal-cel" type="tel" class="form-control" placeholder="Ej: 999888777">` +
+              `</div>`,
             focusConfirm: false,
             allowOutsideClick: false,
             confirmButtonText: 'Guardar y Entrar',
@@ -159,7 +233,7 @@
               const nick = document.getElementById('swal-nick').value.trim();
               const cel = document.getElementById('swal-cel').value.trim();
               if (!nick || !cel || cel.length < 9) {
-                Swal.showValidationMessage('Por favor ingresa un Nickname y un número de WhatsApp válido');
+                Swal.showValidationMessage('Por favor ingresa un Nickname y un número de WhatsApp válido (mín. 9 dígitos)');
                 return false;
               }
               return { nick, cel };
@@ -189,11 +263,40 @@
           entrarAPantallaPronosticos(user.uid, data.nick || data.nombre);
         }
       } catch (err) {
-        Swal.fire('Atención', 'No se completó el inicio con Google: ' + err.message, 'warning');
+        Swal.fire('Atención', 'No se completó el inicio con Google.', 'warning');
       }
     };
 
-    // 2. REGISTRO MANUAL CON CORREO (ENVÍA LINK DE VERIFICACIÓN)
+    // 2. RECUPERAR CONTRASEÑA OLVIDADA
+    window.recuperarContrasena = async () => {
+      const emailPrevia = document.getElementById('loginEmail').value.trim();
+      const { value: email } = await Swal.fire({
+        title: '🔑 Recuperar Contraseña',
+        input: 'email',
+        inputLabel: 'Ingresa el correo con el que te registraste y te enviaremos un enlace para crear una nueva clave:',
+        inputValue: emailPrevia,
+        inputPlaceholder: 'tucorreo@ejemplo.com',
+        showCancelButton: true,
+        confirmButtonText: 'Enviar enlace',
+        cancelButtonText: 'Cancelar'
+      });
+
+      if (email) {
+        Swal.fire({title: 'Enviando correo...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
+        try {
+          await sendPasswordResetEmail(auth, email.trim());
+          Swal.fire(
+            '¡Enlace Enviado!',
+            `Revisa la bandeja de entrada de <b>${email}</b> (y también la carpeta de <b>Spam / No deseados</b>) para cambiar tu contraseña.`,
+            'success'
+          );
+        } catch (err) {
+          Swal.fire('Error', 'No se pudo enviar el correo. Verifica que la dirección esté bien escrita.', 'error');
+        }
+      }
+    };
+
+    // 3. REGISTRO MANUAL CON CORREO
     window.registrarConCorreo = async () => {
       let nombre = document.getElementById('regNombre').value.trim();
       let nick = document.getElementById('regNick').value.trim();
@@ -202,10 +305,13 @@
       let pass = document.getElementById('regPass').value;
 
       if (!nombre || !nick || !celular || !email || !pass) {
-        return Swal.fire('Atención', 'Por favor completa todos los campos, incluyendo tu WhatsApp.', 'warning');
+        return Swal.fire('Faltan datos', 'Por favor completa los 5 campos del formulario.', 'warning');
       }
       if (celular.length < 9) {
-        return Swal.fire('Atención', 'Ingresa un número de Celular / WhatsApp válido.', 'warning');
+        return Swal.fire('Celular inválido', 'Ingresa un número de Celular / WhatsApp válido (mínimo 9 dígitos).', 'warning');
+      }
+      if (pass.length < 6) {
+        return Swal.fire('Contraseña muy corta', 'Por seguridad, tu contraseña debe tener al menos 6 caracteres (letras o números).', 'warning');
       }
 
       Swal.fire({title: 'Creando cuenta...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
@@ -213,7 +319,6 @@
         const cred = await createUserWithEmailAndPassword(auth, email, pass);
         const user = cred.user;
 
-        // Guardamos sus datos en Firestore (incluyendo celular)
         await setDoc(doc(db, "usuarios", user.uid), {
           nombre: nombre,
           nick: nick,
@@ -225,47 +330,46 @@
           aciertosGanador: 0
         });
 
-        // Enviamos correo de verificación obligatorio
         await sendEmailVerification(user);
         await signOut(auth);
 
         Swal.fire({
           icon: 'info',
-          title: '¡Verifica tu Correo!',
-          html: `Hemos enviado un enlace de confirmación a <b>${email}</b>.<br><br>Abre tu correo (revisa también la carpeta de <b>Spam o No deseados</b>), haz clic en el enlace y luego vuelve aquí para Iniciar Sesión.`,
-          confirmButtonText: 'Entendido, ir a Iniciar Sesión'
+          title: '¡Casi listo! Verifica tu Correo',
+          html: `Hemos enviado un enlace de activación a:<br><b>${email}</b><br><br>1. Abre tu correo (revisa también <b>Spam / No deseados</b>).<br>2. Haz clic en el enlace.<br>3. Vuelve aquí para Iniciar Sesión.`,
+          confirmButtonText: 'Ir a Iniciar Sesión'
         }).then(() => {
-          document.getElementById('tab-login').click();
+          mostrarVista('login');
           document.getElementById('loginEmail').value = email;
         });
 
       } catch (err) {
         let msg = err.message;
-        if (err.code === 'auth/email-already-in-use') msg = 'Este correo ya está registrado.';
+        if (err.code === 'auth/email-already-in-use') msg = 'Este correo electrónico ya está registrado. Intenta Iniciar Sesión o recupera tu contraseña.';
         if (err.code === 'auth/weak-password') msg = 'La contraseña debe tener al menos 6 caracteres.';
-        Swal.fire('Error', msg, 'error');
+        if (err.code === 'auth/invalid-email') msg = 'El formato del correo electrónico no es válido.';
+        Swal.fire('Atención', msg, 'error');
       }
     };
 
-    // 3. INICIAR SESIÓN CON CORREO (COMPRUEBA QUE HAYA HECHO CLIC EN EL LINK)
+    // 4. INICIAR SESIÓN CON CORREO
     window.iniciarSesionCorreo = async () => {
       let email = document.getElementById('loginEmail').value.trim();
       let pass = document.getElementById('loginPass').value;
-      if (!email || !pass) return Swal.fire('Atención', 'Ingresa tu correo y contraseña', 'warning');
+      if (!email || !pass) return Swal.fire('Atención', 'Ingresa tu correo y tu contraseña.', 'warning');
 
       Swal.fire({title: 'Ingresando...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
       try {
         const cred = await signInWithEmailAndPassword(auth, email, pass);
         const user = cred.user;
 
-        // Si aún no ha verificado su correo real, no lo dejamos pasar
         if (!user.emailVerified) {
           const res = await Swal.fire({
             icon: 'warning',
-            title: 'Correo no verificado',
-            html: `Tu cuenta aún no está activada. Debes abrir el enlace que enviamos a <b>${email}</b> (revisa tu bandeja de Spam).`,
+            title: 'Falta verificar tu correo',
+            html: `Tu cuenta aún no está activada. Debes abrir el enlace que enviamos a <b>${email}</b> (revisa tu carpeta de Spam o No deseados).`,
             showCancelButton: true,
-            confirmButtonText: '📧 Reenviar correo de verificación',
+            confirmButtonText: '📧 Reenviar enlace a mi correo',
             cancelButtonText: 'Cerrar'
           });
 
@@ -283,7 +387,7 @@
         entrarAPantallaPronosticos(user.uid, nickMostrar);
 
       } catch (err) {
-        Swal.fire('Acceso Denegado', 'Correo o contraseña incorrectos.', 'error');
+        Swal.fire('Acceso Denegado', 'Correo o contraseña incorrectos. Si no la recuerdas, haz clic en "¿Olvidaste tu contraseña?".', 'error');
       }
     };
 
@@ -300,14 +404,14 @@
       location.reload();
     };
 
-    // 4. CARGAR PARTIDOS Y PRONÓSTICOS (CON RELOJ DE CIERRE AUTOMÁTICO)
+    // 5. CARGAR PARTIDOS Y PRONÓSTICOS (CON RELOJ DE CIERRE AUTOMÁTICO)
     let cierresMap = {};
 
     function estaBloqueadoPartido(p) {
       if (p.bloqueado) return true;
       if (cierresMap[p.jornada]) {
         let limite = new Date(cierresMap[p.jornada]);
-        if (new Date() >= limite) return true; // ¡Si ya pasó la hora, se cierra solo!
+        if (new Date() >= limite) return true;
       }
       return false;
     }
@@ -315,14 +419,12 @@
     async function cargarPartidos() {
       document.getElementById('partidosContainer').innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-primary"></div><p>Cargando partidos...</p></div>';
       try {
-        // 1. Leer horarios de cierre desde Firebase
         const cierresSnap = await getDocs(collection(db, "cierres"));
         cierresMap = {};
         cierresSnap.forEach(d => {
           cierresMap[d.id] = d.data().fechaLimite;
         });
 
-        // 2. Leer partidos
         const querySnapshot = await getDocs(collection(db, "partidos"));
         let html = '';
 
@@ -374,7 +476,6 @@
     window.guardarPronosticos = async () => {
       Swal.fire({title: 'Guardando...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
       try {
-        // Volver a verificar la hora exacta al momento de guardar (por si dejó la ventana abierta)
         const cierresSnap = await getDocs(collection(db, "cierres"));
         cierresSnap.forEach(d => { cierresMap[d.id] = d.data().fechaLimite; });
 
@@ -400,7 +501,7 @@
 
         await Promise.all(promesas);
         Swal.fire('¡Guardado!', 'Tus pronósticos abiertos han sido registrados en la Nube.', 'success');
-        cargarPartidos(); // Refresca visualmente por si alguna fecha acaba de cerrar
+        cargarPartidos();
       } catch (e) {
         Swal.fire('Error', 'Hubo un problema al guardar', 'error');
       }
