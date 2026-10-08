@@ -300,17 +300,37 @@
       location.reload();
     };
 
-    // 4. CARGAR PARTIDOS Y PRONÓSTICOS
+    // 4. CARGAR PARTIDOS Y PRONÓSTICOS (CON RELOJ DE CIERRE AUTOMÁTICO)
+    let cierresMap = {};
+
+    function estaBloqueadoPartido(p) {
+      if (p.bloqueado) return true;
+      if (cierresMap[p.jornada]) {
+        let limite = new Date(cierresMap[p.jornada]);
+        if (new Date() >= limite) return true; // ¡Si ya pasó la hora, se cierra solo!
+      }
+      return false;
+    }
+
     async function cargarPartidos() {
       document.getElementById('partidosContainer').innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-primary"></div><p>Cargando partidos...</p></div>';
       try {
+        // 1. Leer horarios de cierre desde Firebase
+        const cierresSnap = await getDocs(collection(db, "cierres"));
+        cierresMap = {};
+        cierresSnap.forEach(d => {
+          cierresMap[d.id] = d.data().fechaLimite;
+        });
+
+        // 2. Leer partidos
         const querySnapshot = await getDocs(collection(db, "partidos"));
         let html = '';
 
         querySnapshot.forEach((docSnap) => {
           let p = docSnap.data();
-          let disabled = p.bloqueado ? 'disabled' : '';
-          let bloqueadoUI = p.bloqueado ? '<span class="badge bg-danger ms-2">Cerrado</span>' : '';
+          let cerrado = estaBloqueadoPartido(p);
+          let disabled = cerrado ? 'disabled' : '';
+          let bloqueadoUI = cerrado ? '<span class="badge bg-danger ms-2">Cerrado</span>' : '';
 
           html += `
           <div class="match-card">
@@ -354,12 +374,16 @@
     window.guardarPronosticos = async () => {
       Swal.fire({title: 'Guardando...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
       try {
+        // Volver a verificar la hora exacta al momento de guardar (por si dejó la ventana abierta)
+        const cierresSnap = await getDocs(collection(db, "cierres"));
+        cierresSnap.forEach(d => { cierresMap[d.id] = d.data().fechaLimite; });
+
         const querySnapshot = await getDocs(collection(db, "partidos"));
         let promesas = [];
 
         querySnapshot.forEach((docSnap) => {
           let p = docSnap.data();
-          if (!p.bloqueado) {
+          if (!estaBloqueadoPartido(p)) {
             let gl = document.getElementById('loc_' + p.id).value;
             let gv = document.getElementById('vis_' + p.id).value;
 
@@ -375,7 +399,8 @@
         });
 
         await Promise.all(promesas);
-        Swal.fire('¡Guardado!', 'Tus pronósticos han sido registrados en la Nube.', 'success');
+        Swal.fire('¡Guardado!', 'Tus pronósticos abiertos han sido registrados en la Nube.', 'success');
+        cargarPartidos(); // Refresca visualmente por si alguna fecha acaba de cerrar
       } catch (e) {
         Swal.fire('Error', 'Hubo un problema al guardar', 'error');
       }
