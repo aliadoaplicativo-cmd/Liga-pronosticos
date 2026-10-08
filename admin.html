@@ -179,25 +179,30 @@
       .catch(err => Swal.fire('Error', err.message, 'error'));
     };
 
-    window.sincronizarPartidos = async () => { /* CÓDIGO SINCRONIZAR (sin cambios) */
+    window.sincronizarPartidos = async () => {
       Swal.fire({title: 'Leyendo Excel...', text: 'Obteniendo partidos...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
       try {
         const partidos = await callAPI("getPartidosParaJugadoresAPI");
-        if(partidos.length === 0) return Swal.fire('Atención', 'No hay partidos.', 'warning');
+        if(partidos.length === 0) return Swal.fire('Atención', 'No hay partidos pendientes para sincronizar.', 'warning');
+        
         Swal.fire({title: 'Subiendo a Firebase...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
         const promesas = partidos.map(p => {
-          const docRef = doc(db, "partidos", p.id);
-          return setDoc(docRef, { id: p.id, jornada: p.jornada, local: p.local, visita: p.visita, bloqueado: p.bloqueado });
+          const docRef = doc(db, "partidos", String(p.id).trim());
+          // Usamos merge: true para no borrar goles reales si ya existían
+          return setDoc(docRef, { 
+            id: String(p.id).trim(), 
+            jornada: p.jornada, 
+            local: p.local, 
+            visita: p.visita, 
+            bloqueado: p.bloqueado 
+          }, { merge: true });
         });
         await Promise.all(promesas);
-        Swal.fire('¡Éxito!', `Se sincronizaron a la Nube correctamente.`, 'success');
+        Swal.fire('¡Éxito!', `Se sincronizaron los partidos a la Nube correctamente.`, 'success');
       } catch (error) { Swal.fire('Error', error.message, 'error'); }
     };
 
-    // ==========================================
-    // NUEVO MOTOR: CALCULAR PUNTOS MASIVO
-    // ==========================================
-   window.calcularPuntosFirebase = async () => {
+    window.calcularPuntosFirebase = async () => {
        Swal.fire({title: 'Analizando Excel...', text: 'Leyendo resultados y configuración...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
        try {
           const datosExcel = await callAPI("obtenerResultadosYReglasAPI", {password: globalPass});
@@ -208,21 +213,23 @@
              return Swal.fire('Aviso', 'Aún no hay partidos marcados como "Finalizado" en el Excel.', 'warning');
           }
 
-          Swal.fire({title: 'Actualizando Nube...', text: 'Guardando resultados y calculando puntajes...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
+          Swal.fire({title: 'Actualizando Nube...', text: 'Guardando resultados reales y calculando puntajes...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
 
           let promesasUpdate = [];
 
-          // 1. Guardar las reglas actuales en Firebase para el desglose
+          // 1. Guardar las reglas actuales en Firebase
           promesasUpdate.push(setDoc(doc(db, "configuracion", "reglas"), reglas));
 
-          // 2. Actualizar los partidos finalizados en Firebase (Poner goles reales y bloquearlos)
+          // 2. Guardar los goles reales en cada partido dentro de Firebase (usando setDoc + merge para que nunca falle)
           for (let pid in resultadosReales) {
-             promesasUpdate.push(updateDoc(doc(db, "partidos", pid), {
-                golesLocalReal: parseInt(resultadosReales[pid].golesLocal),
-                golesVisitaReal: parseInt(resultadosReales[pid].golesVisita),
+             let cleanId = String(pid).trim();
+             promesasUpdate.push(setDoc(doc(db, "partidos", cleanId), {
+                id: cleanId,
+                golesLocalReal: Number(resultadosReales[pid].golesLocal),
+                golesVisitaReal: Number(resultadosReales[pid].golesVisita),
                 estado: "Finalizado",
-                bloqueado: true // ¡Así nadie más puede pronosticar un partido ya jugado!
-             }).catch(() => {}));
+                bloqueado: true
+             }, { merge: true }));
           }
 
           // 3. Traer todos los usuarios y calcular sus puntos
@@ -236,13 +243,13 @@
              
              pronosSnap.forEach(prDoc => {
                 let pr = prDoc.data();
-                let pid = pr.partidoId;
+                let pid = String(pr.partidoId).trim();
                 
                 if(resultadosReales[pid]) {
-                   let realGL = parseInt(resultadosReales[pid].golesLocal);
-                   let realGV = parseInt(resultadosReales[pid].golesVisita);
-                   let prGL = parseInt(pr.golesLocal);
-                   let prGV = parseInt(pr.golesVisita);
+                   let realGL = Number(resultadosReales[pid].golesLocal);
+                   let realGV = Number(resultadosReales[pid].golesVisita);
+                   let prGL = Number(pr.golesLocal);
+                   let prGV = Number(pr.golesVisita);
                    
                    if(prGL === realGL && prGV === realGV) {
                       ptsTotales += reglas.exacto; exactos++;
@@ -263,7 +270,7 @@
           }
           
           await Promise.all(promesasUpdate);
-          Swal.fire('¡Éxito Total!', 'Partidos cerrados y puntajes actualizados en la Nube.', 'success');
+          Swal.fire('¡Éxito Total!', 'Resultados reales subidos y puntajes actualizados en la Nube.', 'success');
           
        } catch(err) {
           Swal.fire('Error', err.message, 'error');
