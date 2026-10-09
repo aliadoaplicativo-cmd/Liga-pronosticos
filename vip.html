@@ -44,7 +44,13 @@
       <h4 id="saludoUsuario" class="text-dark m-0 fw-bold">Hola</h4>
       <button class="btn btn-sm btn-outline-danger fw-bold" onclick="location.reload()">Salir</button>
     </div>
+<!-- NUEVO: FILTRO DE JORNADA DESPLEGABLE -->
+    <div id="filtroJornadaContainer" class="mb-4 d-none bg-white p-3 rounded shadow-sm border-bottom border-3 border-warning">
+      <label class="form-label text-warning fw-bold mb-1" style="color: #d39e00 !important;">📅 Selecciona la Jornada a Pronosticar:</label>
+      <select id="selectJornadaFiltro" class="form-select form-select-lg border-warning shadow-sm fw-bold text-center text-dark" onchange="filtrarJornadaVIP()"></select>
+    </div>
 
+    <div id="partidosContainer"></div>  
     <div id="partidosContainer"></div>
 
     <div class="text-center mt-4">
@@ -111,8 +117,9 @@
       }
     };
 
-    // 2. Cargar Partidos desde Firebase (CON RELOJ DE CIERRE AUTOMÁTICO)
+    // 2. Cargar Partidos desde Firebase (CON FILTRO DESPLEGABLE VIP)
     let cierresMap = {};
+    let todosLosPartidos = []; 
 
     function estaBloqueadoPartido(p) {
       if (p.bloqueado) return true;
@@ -128,50 +135,96 @@
       try {
         const cierresSnap = await getDocs(collection(db, "cierres"));
         cierresMap = {};
-        cierresSnap.forEach(d => {
-          cierresMap[d.id] = d.data().fechaLimite;
-        });
+        cierresSnap.forEach(d => { cierresMap[d.id] = d.data().fechaLimite; });
 
         const querySnapshot = await getDocs(collection(db, "partidos"));
-        let html = '';
+        todosLosPartidos = [];
+        let jornadasSet = new Set();
 
         querySnapshot.forEach((docSnap) => {
           let p = docSnap.data();
-          let cerrado = estaBloqueadoPartido(p);
-          let disabled = cerrado ? 'disabled' : '';
-          let bloqueadoUI = cerrado ? '<span class="badge bg-danger ms-2">Cerrado</span>' : '';
-
-          html += `
-          <div class="match-card">
-            <div class="text-center text-muted small mb-2 fw-bold">${p.jornada} ${bloqueadoUI}</div>
-            <div class="d-flex justify-content-between align-items-center">
-              <div class="text-end fw-bold w-100" style="font-size: 1.1rem;">${p.local}</div>
-              <div class="mx-3 d-flex align-items-center">
-                <input type="number" id="loc_${p.id}" class="form-control score-input" min="0" ${disabled}>
-                <span class="mx-2 fs-4 fw-bold text-muted">-</span>
-                <input type="number" id="vis_${p.id}" class="form-control score-input" min="0" ${disabled}>
-              </div>
-              <div class="text-start fw-bold w-100" style="font-size: 1.1rem;">${p.visita}</div>
-            </div>
-          </div>`;
+          todosLosPartidos.push(p);
+          jornadasSet.add(p.jornada);
         });
 
-        if (html === '') {
+        if (todosLosPartidos.length === 0) {
           document.getElementById('partidosContainer').innerHTML = '<div class="alert alert-info text-center">No hay partidos programados.</div>';
+          document.getElementById('filtroJornadaContainer').classList.add('d-none');
           Swal.close();
           return;
         }
 
-        document.getElementById('partidosContainer').innerHTML = html;
-        document.getElementById('btnGuardarPronosticos').classList.remove('d-none');
+        // Ordenar las jornadas (Ej: Fecha 11, Fecha 12, Fecha 13)
+        let jornadasUnicas = Array.from(jornadasSet).sort((a, b) => a.localeCompare(b, undefined, {numeric: true}));
+        
+        let select = document.getElementById('selectJornadaFiltro');
+        if(select) {
+          select.innerHTML = '';
+          jornadasUnicas.forEach(j => {
+            select.innerHTML += `<option value="${j}">${j}</option>`;
+          });
+          document.getElementById('filtroJornadaContainer').classList.remove('d-none');
 
-        await cargarMisPronosticosVIP();
+          // Autoseleccionar la primera jornada que tenga al menos un partido abierto
+          let jornadaPorDefecto = jornadasUnicas[0];
+          for (let j of jornadasUnicas) {
+             let partidosJ = todosLosPartidos.filter(p => p.jornada === j);
+             if (partidosJ.some(p => !estaBloqueadoPartido(p))) {
+                 jornadaPorDefecto = j;
+                 break;
+             }
+          }
+          select.value = jornadaPorDefecto;
+        }
+
+        // Mostrar los partidos de la jornada seleccionada
+        await filtrarJornadaVIP();
         Swal.close();
+
       } catch (error) {
         document.getElementById('partidosContainer').innerHTML = '<div class="alert alert-danger">Error cargando partidos.</div>';
         Swal.close();
       }
     }
+
+    // Función que pinta solo la jornada elegida en el menú para VIP
+    window.filtrarJornadaVIP = async () => {
+      let select = document.getElementById('selectJornadaFiltro');
+      let jornadaSeleccionada = select ? select.value : null;
+      if(!jornadaSeleccionada) return;
+
+      let partidosAMostrar = todosLosPartidos.filter(p => p.jornada === jornadaSeleccionada);
+      
+      // Ordenar alfabéticamente por el nombre del equipo local para un visual limpio
+      partidosAMostrar.sort((a, b) => a.local.localeCompare(b.local));
+
+      let html = '';
+      partidosAMostrar.forEach(p => {
+        let cerrado = estaBloqueadoPartido(p);
+        let disabled = cerrado ? 'disabled' : '';
+        let bloqueadoUI = cerrado ? '<span class="badge bg-danger ms-2">Cerrado</span>' : '';
+
+        html += `
+        <div class="match-card">
+          <div class="text-center text-muted small mb-2 fw-bold">${p.jornada} ${bloqueadoUI}</div>
+          <div class="d-flex justify-content-between align-items-center">
+            <div class="text-end fw-bold w-100" style="font-size: 1.1rem;">${p.local}</div>
+            <div class="mx-3 d-flex align-items-center">
+              <input type="number" id="loc_${p.id}" class="form-control score-input" min="0" ${disabled}>
+              <span class="mx-2 fs-4 fw-bold text-muted">-</span>
+              <input type="number" id="vis_${p.id}" class="form-control score-input" min="0" ${disabled}>
+            </div>
+            <div class="text-start fw-bold w-100" style="font-size: 1.1rem;">${p.visita}</div>
+          </div>
+        </div>`;
+      });
+
+      document.getElementById('partidosContainer').innerHTML = html;
+      document.getElementById('btnGuardarPronosticos').classList.remove('d-none');
+
+      // 3. Mostrar pronósticos previos del VIP para esta jornada
+      await cargarMisPronosticosVIP();
+    };
 
     // 3. Mostrar pronósticos previos del VIP
     async function cargarMisPronosticosVIP() {
@@ -188,36 +241,41 @@
       });
     }
 
-    // 4. Guardar pronósticos del VIP en Firebase
+    // 4. Guardar pronósticos del VIP en Firebase (SOLO DE LA JORNADA VISIBLE)
     window.guardarPronosticosVIP = async () => {
       Swal.fire({title: 'Guardando...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
       try {
         const cierresSnap = await getDocs(collection(db, "cierres"));
         cierresSnap.forEach(d => { cierresMap[d.id] = d.data().fechaLimite; });
 
-        const querySnapshot = await getDocs(collection(db, "partidos"));
         let promesas = [];
+        let select = document.getElementById('selectJornadaFiltro');
+        let jornadaSeleccionada = select ? select.value : null;
+        let partidosAMostrar = todosLosPartidos.filter(p => p.jornada === jornadaSeleccionada);
 
-        querySnapshot.forEach((docSnap) => {
-          let p = docSnap.data();
+        partidosAMostrar.forEach((p) => {
           if(!estaBloqueadoPartido(p)) {
-            let gl = document.getElementById('loc_' + p.id).value;
-            let gv = document.getElementById('vis_' + p.id).value;
+            let elLoc = document.getElementById('loc_' + p.id);
+            let elVis = document.getElementById('vis_' + p.id);
+            if(elLoc && elVis) {
+              let gl = elLoc.value;
+              let gv = elVis.value;
 
-            if(gl !== "" && gv !== "") {
-              const docRef = doc(db, "usuarios", loggedVipId, "pronosticos", p.id);
-              promesas.push(setDoc(docRef, {
-                partidoId: p.id,
-                golesLocal: parseInt(gl),
-                golesVisita: parseInt(gv)
-              }));
+              if(gl !== "" && gv !== "") {
+                const docRef = doc(db, "usuarios", loggedVipId, "pronosticos", p.id);
+                promesas.push(setDoc(docRef, {
+                  partidoId: p.id,
+                  golesLocal: parseInt(gl),
+                  golesVisita: parseInt(gv)
+                }));
+              }
             }
           }
         });
 
         await Promise.all(promesas);
-        Swal.fire('¡Guardado!', 'Tus pronósticos VIP han sido registrados.', 'success');
-        cargarPartidosVIP();
+        Swal.fire('¡Guardado!', `Tus pronósticos VIP para la ${jornadaSeleccionada} han sido registrados.`, 'success');
+        filtrarJornadaVIP();
       } catch (e) {
         Swal.fire('Error', 'Hubo un problema al guardar', 'error');
       }
