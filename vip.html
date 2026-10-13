@@ -168,15 +168,8 @@
           });
           document.getElementById('filtroJornadaContainer').classList.remove('d-none');
 
-          // Autoseleccionar la primera jornada que tenga al menos un partido abierto
-          let jornadaPorDefecto = jornadasUnicas[0];
-          for (let j of jornadasUnicas) {
-             let partidosJ = todosLosPartidos.filter(p => p.jornada === j);
-             if (partidosJ.some(p => !estaBloqueadoPartido(p))) {
-                 jornadaPorDefecto = j;
-                 break;
-             }
-          }
+          // Autoseleccionar SIEMPRE la última jornada creada (la más reciente)
+          let jornadaPorDefecto = jornadasUnicas[jornadasUnicas.length - 1];
           select.value = jornadaPorDefecto;
         }
 
