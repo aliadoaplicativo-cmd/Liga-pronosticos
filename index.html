@@ -174,9 +174,11 @@
       }
     };
     
-    // 2. Pintar la tabla consultando directo a Firebase
+    // 2. Pintar la tabla consultando directo a Firebase con Filtro de Jornada
     window.cargarTabla = async function() {
+      let jor = document.getElementById('filtroJornada').value; // <-- Capturamos la jornada seleccionada
       let tip = document.getElementById('filtroTipo').value;
+      
       document.getElementById('loader').classList.remove('d-none');
       document.getElementById('tablaPosiciones').classList.add('d-none');
       
@@ -184,18 +186,52 @@
         const usuariosSnap = await getDocs(collection(db, "usuarios"));
         let data = [];
         
-        usuariosSnap.forEach(docSnap => {
+        // Usamos un bucle for...of para poder consultar sub-colecciones
+        for (let docSnap of usuariosSnap.docs) {
            let u = docSnap.data();
+           
            if(tip === "Todos" || u.rol === tip || (tip==="Público" && u.rol!=="VIP")) {
+               
+               let puntosMostrar = 0;
+               
+               // Si elige "Todas", mostramos el puntaje global guardado
+               if (jor === "Todas") {
+                   puntosMostrar = u.puntos || 0;
+               } else {
+                   // Si elige una fecha específica, calculamos solo los puntos de esa fecha
+                   const pronosSnap = await getDocs(collection(db, "usuarios", u.id, "pronosticos"));
+                   let ptsJornada = 0;
+                   
+                   pronosSnap.forEach(prDoc => {
+                       let pr = prDoc.data();
+                       let p = todosLosPartidos.find(part => part.id === pr.partidoId);
+                       
+                       // Verificamos que el partido sea de la jornada filtrada y esté finalizado
+                       if (p && p.jornada === jor && p.estado === "Finalizado") {
+                           let prGL = Number(pr.golesLocal);
+                           let prGV = Number(pr.golesVisita);
+                           let realGL = Number(p.golesLocalReal);
+                           let realGV = Number(p.golesVisitaReal);
+                           
+                           // Regla 3-2-1
+                           if (prGL === realGL && prGV === realGV) ptsJornada += 3;
+                           else if ((realGL - realGV) === (prGL - prGV)) ptsJornada += 2;
+                           else if ((realGL > realGV && prGL > prGV) || (realGL < realGV && prGL < prGV) || (realGL === realGV && prGL === prGV)) ptsJornada += 1;
+                       }
+                   });
+                   puntosMostrar = ptsJornada;
+               }
+               
                data.push({
                    id: u.id,
                    nombre: u.nombre || u.nick,
-                   puntos: u.puntos || 0,
+                   puntos: puntosMostrar,
                    tipo: u.rol || "Público"
                });
            }
-        });
+        }
         
+        // Ordenar por puntos (de mayor a menor)
         data.sort((a, b) => b.puntos - a.puntos);
         data.forEach((row, index) => row.rank = index + 1);
 
@@ -219,7 +255,6 @@
         document.getElementById('loader').innerHTML = `<div class="alert alert-danger">Error al cargar datos.</div>`;
       }
     };
-
     window.abrirDashboard = function(id, nombre) {
       window.currentPartId = id;
       document.getElementById('dashNombre').innerText = nombre;
