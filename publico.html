@@ -459,9 +459,17 @@
         });
         document.getElementById('filtroJornadaContainer').classList.remove('d-none');
 
-        // Autoseleccionar SIEMPRE la última jornada creada (la más reciente)
-        let jornadaPorDefecto = jornadasUnicas[jornadasUnicas.length - 1];
-        select.value = jornadaPorDefecto;
+        // Autoseleccionar la fecha que tenga partidos pendientes
+          let jornadaPorDefecto = jornadasUnicas[jornadasUnicas.length - 1]; 
+          for (let j of jornadasUnicas) {
+             let partidosJ = todosLosPartidos.filter(p => p.jornada === j);
+             // Verifica si la fecha tiene partidos en estado "Pendiente"
+             if (partidosJ.some(p => p.estado === "Pendiente")) {
+                 jornadaPorDefecto = j;
+                 break; 
+             }
+          }
+          if(select) select.value = jornadaPorDefecto;
         // Mostrar los partidos de la jornada seleccionada
         await filtrarJornada();
 
