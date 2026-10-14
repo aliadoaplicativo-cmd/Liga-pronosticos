@@ -168,14 +168,15 @@
           });
           document.getElementById('filtroJornadaContainer').classList.remove('d-none');
 
-          // Autoseleccionar la fecha que tenga partidos pendientes
+         // LÓGICA DEFINITIVA PARA AUTO-SELECCIONAR JORNADA
           let jornadaPorDefecto = jornadasUnicas[jornadasUnicas.length - 1]; 
           for (let j of jornadasUnicas) {
              let partidosJ = todosLosPartidos.filter(p => p.jornada === j);
-             // Verifica si la fecha tiene partidos en estado "Pendiente"
-             if (partidosJ.some(p => p.estado === "Pendiente")) {
+             // Si la jornada NO está cerrada (es decir, no tiene el letrero rojo)
+             if (partidosJ.some(p => !estaBloqueadoPartido(p))) {
                  jornadaPorDefecto = j;
-                 break; 
+                 // NOTA: Al no poner "break;", el sistema recorre todas 
+                 // y se queda automáticamente con la última que esté abierta (Fecha 12).
              }
           }
           if(select) select.value = jornadaPorDefecto;
