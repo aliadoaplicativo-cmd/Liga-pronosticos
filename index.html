@@ -168,11 +168,7 @@
           selectMod.innerHTML += `<option value="${j}">${j}</option>`;
         });
         
-        // Auto-filtrar la tabla a la última jornada subida
-        if (jornadas.length > 0) {
-           selectPrin.value = jornadas[jornadas.length - 1];
-        }
-        
+                
         window.cargarTabla();
       } catch (e) {
         console.error("Error", e);
