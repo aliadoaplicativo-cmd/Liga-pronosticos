@@ -6,17 +6,20 @@
   <title>Clasificación | Aliado</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
-    body { background-color: #f4f6f9; }
+    /* El overflow-x: hidden evita el espacio blanco en celulares */
+    body { background-color: #f4f6f9; overflow-x: hidden; width: 100%; }
     .header-app { background: linear-gradient(135deg, #3f2b6e 0%, #2a1b4e 100%) !important; color: white; padding: 2rem 0; }
     .top-banner { background-color: #ffffff; padding: 15px 0; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); position: relative; z-index: 10; border-bottom: 3px solid #d4ff00; }
-    .top-banner img { height: 60px; object-fit: contain; }
+    /* max-width: 100% evita que el banner rompa la pantalla */
+    .top-banner img { height: 60px; max-width: 100%; object-fit: contain; }
     .table-container { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-top: -30px; position: relative; z-index: 20; }
     .vip-badge { font-size: 0.75rem; background: #ffd700; color: #000; padding: 3px 8px; border-radius: 12px; margin-left: 5px; font-weight: bold;}
     .clickable-row { cursor: pointer; transition: background 0.2s; }
     .clickable-row:hover { background-color: #e2e8f0 !important; }
     .stat-card { border-radius: 10px; padding: 15px; text-align: center; }
     .footer-empresa { background-color: #f8f9fa; text-align: center; padding: 30px 15px; margin-top: 60px; color: #3f2b6e; }
-    .footer-logo { height: 50px; margin-bottom: 10px; object-fit: contain; }
+    /* Protegemos también el logo inferior */
+    .footer-logo { height: 50px; max-width: 100%; margin-bottom: 10px; object-fit: contain; }
   </style>
 </head>
 <body>
@@ -49,16 +52,18 @@
     
     <div id="loader" class="text-center my-5"><div class="spinner-border text-primary" role="status"></div></div>
    
-    <table class="table table-hover d-none mt-3 align-middle" id="tablaPosiciones">
-      <thead class="table-dark">
-        <tr>
-          <th class="text-center">Pos</th>
-          <th>Participante</th>
-          <th class="text-center">Puntos</th>
-        </tr>
-      </thead>
-      <tbody id="tbodyPosiciones"></tbody>
-    </table>
+    <div class="table-responsive border-0">
+      <table class="table table-hover d-none mt-3 align-middle" id="tablaPosiciones">
+        <thead class="table-dark">
+          <tr>
+            <th class="text-center">Pos</th>
+            <th>Participante</th>
+            <th class="text-center">Puntos</th>
+          </tr>
+        </thead>
+        <tbody id="tbodyPosiciones"></tbody>
+      </table>
+    </div>
   </div>
 
   <!-- MODAL DASHBOARD DEL PARTICIPANTE -->
