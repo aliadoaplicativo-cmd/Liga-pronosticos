@@ -81,24 +81,31 @@
           <div id="loaderModal" class="text-center my-5"><div class="spinner-border text-primary"></div></div>
          
           <div id="dashboardContent" class="d-none">
-            <!-- TARJETAS DE ACIERTOS -->
-            <div class="row g-3 mb-4">
-              <div class="col-4">
-                <div class="stat-card bg-white border border-success border-2 shadow-sm">
-                  <h2 class="text-success m-0 fw-bold" id="statExactos">0</h2>
-                  <small class="text-muted fw-bold d-block mt-1">Marcadores<br>Exactos</small>
+            
+            <!-- TARJETAS DE ACIERTOS (NUEVO DISEÑO COLORIDO 4 COLUMNAS) -->
+            <div class="row g-2 mb-4">
+              <div class="col-6 col-md-3">
+                <div class="stat-card bg-success text-white shadow-sm p-2">
+                  <h3 class="text-white m-0 fw-bold" id="statExactos">0</h3>
+                  <small class="text-white-50 fw-bold d-block mt-1" style="font-size:0.75rem;">Exactos<br>(3 pts)</small>
                 </div>
               </div>
-              <div class="col-4">
-                <div class="stat-card bg-white border border-info border-2 shadow-sm">
-                  <h2 class="text-info m-0 fw-bold" id="statTendencia">0</h2>
-                  <small class="text-muted fw-bold d-block mt-1">Aciertos<br>Ganador</small>
+              <div class="col-6 col-md-3">
+                <div class="stat-card bg-info text-dark shadow-sm p-2">
+                  <h3 class="text-dark m-0 fw-bold" id="statDiferencia">0</h3>
+                  <small class="text-dark-50 fw-bold d-block mt-1" style="font-size:0.75rem;">Diferencia<br>(2 pts)</small>
                 </div>
               </div>
-              <div class="col-4">
-                <div class="stat-card bg-primary text-white shadow">
-                  <h2 class="m-0 fw-bold text-white" id="statTotal">0</h2>
-                  <small class="fw-bold d-block mt-1 text-white-50">Puntos<br>Totales</small>
+              <div class="col-6 col-md-3">
+                <div class="stat-card bg-warning text-dark shadow-sm p-2">
+                  <h3 class="text-dark m-0 fw-bold" id="statTendencia">0</h3>
+                  <small class="text-dark-50 fw-bold d-block mt-1" style="font-size:0.75rem;">Ganador<br>(1 pt)</small>
+                </div>
+              </div>
+              <div class="col-6 col-md-3">
+                <div class="stat-card bg-primary text-white shadow p-2">
+                  <h3 class="m-0 fw-bold text-white" id="statTotal">0</h3>
+                  <small class="fw-bold d-block mt-1 text-white-50" style="font-size:0.75rem;">Puntos<br>Totales</small>
                 </div>
               </div>
             </div>
@@ -133,7 +140,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
     import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
     
-    // Tus llaves de Firebase (Las mismas del admin.html)
+    // Tus llaves de Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyDl95kPyGtbK5_6PP7i-joBS7fXY2BLXYg",
       authDomain: "liga-pronosticos-aliado.firebaseapp.com",
@@ -168,16 +175,15 @@
           selectMod.innerHTML += `<option value="${j}">${j}</option>`;
         });
         
-                
         window.cargarTabla();
       } catch (e) {
         console.error("Error", e);
       }
     };
     
-    // 2. Pintar la tabla consultando directo a Firebase con Filtro de Jornada
+    // 2. Pintar la tabla principal
     window.cargarTabla = async function() {
-      let jor = document.getElementById('filtroJornada').value; // <-- Capturamos la jornada seleccionada
+      let jor = document.getElementById('filtroJornada').value;
       let tip = document.getElementById('filtroTipo').value;
       
       document.getElementById('loader').classList.remove('d-none');
@@ -187,7 +193,6 @@
         const usuariosSnap = await getDocs(collection(db, "usuarios"));
         let data = [];
         
-        // Usamos un bucle for...of para poder consultar sub-colecciones
         for (let docSnap of usuariosSnap.docs) {
            let u = docSnap.data();
            
@@ -195,11 +200,9 @@
                
                let puntosMostrar = 0;
                
-               // Si elige "Todas", mostramos el puntaje global guardado
                if (jor === "Todas") {
                    puntosMostrar = u.puntos || 0;
                } else {
-                   // Si elige una fecha específica, calculamos solo los puntos de esa fecha
                    const pronosSnap = await getDocs(collection(db, "usuarios", u.id, "pronosticos"));
                    let ptsJornada = 0;
                    
@@ -207,14 +210,12 @@
                        let pr = prDoc.data();
                        let p = todosLosPartidos.find(part => part.id === pr.partidoId);
                        
-                       // Verificamos que el partido sea de la jornada filtrada y esté finalizado
                        if (p && p.jornada === jor && p.estado === "Finalizado") {
                            let prGL = Number(pr.golesLocal);
                            let prGV = Number(pr.golesVisita);
                            let realGL = Number(p.golesLocalReal);
                            let realGV = Number(p.golesVisitaReal);
                            
-                           // Regla 3-2-1
                            if (prGL === realGL && prGV === realGV) ptsJornada += 3;
                            else if ((realGL - realGV) === (prGL - prGV)) ptsJornada += 2;
                            else if ((realGL > realGV && prGL > prGV) || (realGL < realGV && prGL < prGV) || (realGL === realGV && prGL === prGV)) ptsJornada += 1;
@@ -232,10 +233,8 @@
            }
         }
         
-        // Ordenar por puntos (de mayor a menor)
         data.sort((a, b) => b.puntos - a.puntos);
         data.forEach((row, index) => row.rank = index + 1);
-
         document.getElementById('loader').classList.add('d-none');
         document.getElementById('tablaPosiciones').classList.remove('d-none');
         let tbody = document.getElementById('tbodyPosiciones');
@@ -245,7 +244,7 @@
           let medalla = row.rank === 1 ? '🥇' : row.rank === 2 ? '🥈' : row.rank === 3 ? '🥉' : `<span class="fw-bold text-muted">${row.rank}</span>`;
           let badge = row.tipo === "VIP" ? '<span class="vip-badge shadow-sm">VIP</span>' : '';
          
-          html += `<tr class="clickable-row" onclick="abrirDashboard('${row.id}', '${row.nombre}')">
+          html += `<tr class="clickable-row" onclick="abrirDashboard('${row.id}','${row.nombre}')">
                      <td class="text-center">${medalla}</td>
                      <td class="fw-bold text-dark">${row.nombre} ${badge} <br><small class="text-primary" style="font-size:0.75em;">🔍 Ver más</small></td>
                      <td class="text-center fw-bold text-primary fs-4">${row.puntos}</td>
@@ -256,6 +255,7 @@
         document.getElementById('loader').innerHTML = `<div class="alert alert-danger">Error al cargar datos.</div>`;
       }
     };
+
     window.abrirDashboard = function(id, nombre) {
       window.currentPartId = id;
       document.getElementById('dashNombre').innerText = nombre;
@@ -265,7 +265,7 @@
       window.cargarDashboard();
     };
     
-    // 3. Ver los pronósticos de la persona consultando Firebase
+    // 3. Ver los pronósticos de la persona consultando Firebase con Cálculo Dinámico
     window.cargarDashboard = async function() {
       let filtro = document.getElementById('filtroModal').value;
       document.getElementById('loaderModal').classList.remove('d-none');
@@ -275,12 +275,14 @@
         let userDoc = await getDoc(doc(db, "usuarios", window.currentPartId));
         let u = userDoc.data();
         
-        document.getElementById('statExactos').innerText = u.exactos || 0;
-        document.getElementById('statTendencia').innerText = u.aciertosGanador || 0;
-        document.getElementById('statTotal').innerText = u.puntos || 0;
-
         const pronosSnap = await getDocs(collection(db, "usuarios", window.currentPartId, "pronosticos"));
         let historial = [];
+        
+        // Contadores dinámicos para las 4 tarjetas (Cálculo en Vivo)
+        let calcPuntos = 0;
+        let calcExactos = 0;
+        let calcDiferencia = 0;
+        let calcTendencia = 0;
         
         pronosSnap.forEach(prDoc => {
             let pr = prDoc.data();
@@ -298,10 +300,21 @@
                     let realGV = Number(p.golesVisitaReal);
                     let ptsCalculados = 0;
                     
-                    if (prGL === realGL && prGV === realGV) ptsCalculados = 3;
-                    else if ((realGL - realGV) === (prGL - prGV)) ptsCalculados = 2;
-                    else if ((realGL > realGV && prGL > prGV) || (realGL < realGV && prGL < prGV) || (realGL === realGV && prGL === prGV)) ptsCalculados = 1;
+                    // Lógica 3-2-1
+                    if (prGL === realGL && prGV === realGV) {
+                        ptsCalculados = 3;
+                        calcExactos++;
+                    }
+                    else if ((realGL - realGV) === (prGL - prGV)) {
+                        ptsCalculados = 2;
+                        calcDiferencia++;
+                    }
+                    else if ((realGL > realGV && prGL > prGV) || (realGL < realGV && prGL < prGV) || (realGL === realGV && prGL === prGV)) {
+                        ptsCalculados = 1;
+                        calcTendencia++;
+                    }
                     
+                    calcPuntos += ptsCalculados;
                     ptoUI = ptsCalculados > 0 ? `+${ptsCalculados}` : "0";
                 }
                 
@@ -314,6 +327,12 @@
                 });
             }
         });
+
+        // Aplicamos los valores calculados a las 4 tarjetas vistosas
+        document.getElementById('statExactos').innerText = calcExactos;
+        document.getElementById('statDiferencia').innerText = calcDiferencia;
+        document.getElementById('statTendencia').innerText = calcTendencia;
+        document.getElementById('statTotal').innerText = calcPuntos;
 
         document.getElementById('loaderModal').classList.add('d-none');
         document.getElementById('dashboardContent').classList.remove('d-none');
@@ -328,19 +347,17 @@
               let badgeColor = "bg-secondary";
               if (h.puntos === "+3") badgeColor = "bg-success"; 
               else if (h.puntos === "+2") badgeColor = "bg-info text-dark"; 
-              else if (h.puntos === "+1") badgeColor = "bg-primary";
-              else if (h.puntos === "⏳") badgeColor = "bg-warning text-dark"; 
-
+              else if (h.puntos === "+1") badgeColor = "bg-warning text-dark";
+              else if (h.puntos === "⏳") badgeColor = "bg-light text-dark border"; 
               html += `<tr>
                          <td class="text-start"><small class="text-muted d-block fw-bold mb-1" style="font-size:0.75rem;">${h.jornada}</small><strong class="text-dark" style="font-size:0.9rem;">${h.partido}</strong></td>
                          <td class="fw-bold bg-light" style="font-size:1.1rem;">${h.pronostico}</td>
                          <td class="fw-bold bg-light" style="font-size:1.1rem;">${h.real}</td>
-                         <td><span class="badge ${badgeColor} fs-6 shadow-sm" style="min-width: 40px;">${h.puntos}</span></td>
+                         <td><span class="badge ${badgeColor} fs-6 shadow-sm" style="min-width:40px;">${h.puntos}</span></td>
                        </tr>`;
            });
         }
         tbody.innerHTML = html;
-
       } catch (error) {
         document.getElementById('loaderModal').innerHTML = `<div class="alert alert-danger">Error al cargar datos.</div>`;
       }
